@@ -13,7 +13,7 @@ export const setup_llm = () => {
   const llm = new ChatGoogleGenerativeAI({
     model: "gemini-2.0-flash",
     temperature: 0,
-    apiKey: "AIzaSyBgfFmnqb49vb7kqJmWvO-3jUBtUd0If9o",
+    apiKey: process.env.GOOGLE_API_KEY,
   });
 
   // Define the function that calls the model
