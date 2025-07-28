@@ -9,50 +9,54 @@ export default function InstructionsPage() {
       icon: "🚀",
       items: [
         {
-          title: "Welcome to Zayd.ai",
+          title: "Welcome to State Forge",
           description:
-            "Learn how to start your first conversation with our AI assistant.",
+            "Learn how to perform your first automata theory conversion with our AI-powered platform.",
           steps: [
-            "Navigate to the Chat page",
-            "Type your message in the input field",
-            "Press Enter or click the send button",
-            "Wait for Zayd's response",
+            "Navigate to the Conversions page",
+            "Select your desired conversion model from the sidebar",
+            "Enter your input data (text or upload an image)",
+            "Click Convert to see the results",
+            "Use the AI assistant for explanations and help",
           ],
         },
         {
-          title: "Language Support",
-          description: "Zayd.ai supports both English and Arabic languages.",
+          title: "Supported Conversion Types",
+          description:
+            "State Forge supports four main automata theory conversions.",
           steps: [
-            "Type in English for English responses",
-            "Type in Arabic for Arabic responses",
-            "Mix languages naturally in your conversation",
-            "Zayd will automatically detect and respond appropriately",
+            "DFA Minimization - Convert DFA to its minimized equivalent",
+            "Regex to ε-NFA - Transform regular expressions to epsilon NFA",
+            "ε-NFA to DFA - Convert epsilon NFA to deterministic finite automaton",
+            "PDA - Generate push down automata for context-free languages",
           ],
         },
       ],
     },
     {
-      title: "Conversation Tips",
-      icon: "💬",
+      title: "Input Methods",
+      icon: "📝",
       items: [
         {
-          title: "Effective Communication",
-          description: "Get the best responses from Zayd with these tips.",
+          title: "Text Input",
+          description: "Enter automata descriptions in the specified format.",
           steps: [
-            "Be clear and specific in your questions",
-            "Provide context when asking complex questions",
-            "Use complete sentences for better understanding",
-            "Ask follow-up questions to dive deeper",
+            "Use the text area in the left sidebar",
+            "Follow the format examples provided in placeholders",
+            "For DFA: 'A: a-->A, b-->B; B: a-->A, b-->A; in:A; fi:A'",
+            "For Regex: 'a*b+' or '(a|b)*' or 'a+b*c'",
+            "For PDA: 'aabb' representing a^n b^n patterns",
           ],
         },
         {
-          title: "Question Types",
-          description: "Examples of questions Zayd can help with.",
+          title: "Image Input Processing",
+          description: "Upload diagram images for AI-powered text extraction.",
           steps: [
-            "Product information and features",
-            "Technical support and troubleshooting",
-            "Business integration guidance",
-            "General AI and technology questions",
+            "Available for DFA Minimization and ε-NFA to DFA models",
+            "Supported formats: PNG, JPG, JPEG, SVG",
+            "Ensure diagrams are clear and high-contrast",
+            "AI will automatically extract state information",
+            "Manual text entry available as fallback",
           ],
         },
       ],
@@ -62,23 +66,26 @@ export default function InstructionsPage() {
       icon: "⚙️",
       items: [
         {
-          title: "Context Management",
-          description: "How Zayd maintains conversation context.",
+          title: "AI Conversational Assistant",
+          description:
+            "Get intelligent help and explanations for your conversions.",
           steps: [
-            "Zayd remembers previous messages in the session",
-            "Reference earlier parts of the conversation",
-            "Build complex discussions over multiple messages",
-            "Context resets when you start a new session",
+            "Ask questions about automata theory concepts",
+            "Request explanations of conversion results",
+            "Get step-by-step breakdowns of algorithms",
+            "Context-aware responses based on your conversions",
+            "Educational guidance for learning automata theory",
           ],
         },
         {
-          title: "Response Formatting",
-          description: "Understanding Zayd's response structure.",
+          title: "Visualization & History",
+          description: "View results and manage your conversion history.",
           steps: [
-            "Structured answers for complex topics",
-            "Code examples when relevant",
-            "Step-by-step instructions for processes",
-            "Bullet points for lists and options",
+            "Interactive Graphviz-powered state diagrams",
+            "Professional-quality PNG export functionality",
+            "Conversion history stacks for each model type",
+            "Persistent session management",
+            "Easy access to previous conversion work",
           ],
         },
       ],
@@ -87,29 +94,34 @@ export default function InstructionsPage() {
 
   const commonQuestions = [
     {
-      question: "How do I start a conversation?",
+      question: "How do I start a conversion?",
       answer:
-        "Simply go to the Chat page and type your message in the input field at the bottom.",
+        "Go to the Conversions page, select a model from the sidebar, enter your input data, and click Convert.",
     },
     {
-      question: "Can I use Arabic?",
+      question: "What input formats are supported?",
       answer:
-        "Yes! Zayd.ai fully supports Arabic language. You can type in Arabic and get responses in Arabic.",
+        "We support text input with specific formats for each model type, and image uploads (PNG, JPG, JPEG, SVG) for DFA and ε-NFA models.",
     },
     {
-      question: "What topics can I ask about?",
+      question: "What conversion types are available?",
       answer:
-        "You can ask about AI services, business solutions, technical questions, and general assistance.",
+        "DFA Minimization, Regex to ε-NFA, ε-NFA to DFA, and Push Down Automata (PDA) conversions.",
     },
     {
-      question: "How long are conversations stored?",
+      question: "How does the AI assistant work?",
       answer:
-        "Conversations are stored for the duration of your session. They reset when you start a new session.",
+        "Our AI assistant uses Google Gemini 2.0 Flash with LangGraph for context-aware conversations about automata theory and conversion explanations.",
     },
     {
-      question: "Is my data secure?",
+      question: "Can I save or export my results?",
       answer:
-        "Yes, we use enterprise-grade security to protect all conversations and data.",
+        "Yes, you can export diagrams as PNG files and view your conversion history through the dedicated history feature.",
+    },
+    {
+      question: "What technology powers the conversions?",
+      answer:
+        "State Forge uses PyTorch-based transformer neural networks with custom tokenizers for high-quality automata theory conversions.",
     },
   ];
 
@@ -120,14 +132,14 @@ export default function InstructionsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              How to Use Zayd.ai
+              State Forge Documentation
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-              Complete guide to getting the most out of your AI-powered
-              conversations
+              Complete guide to automata theory conversions and AI-powered
+              assistance for formal language processing
             </p>
             <Link href="/chat" className="btn-primary inline-block">
-              Start Chatting Now
+              Start Converting Now
             </Link>
           </div>
         </div>
@@ -172,80 +184,133 @@ export default function InstructionsPage() {
         </div>
       </section>
 
-      {/* Example Conversations */}
+      {/* Example Conversions */}
       <section className="py-16 light-yellow-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Example Conversations
+              Example Conversions
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              See how to structure your questions for the best results
+              See examples of input formats and expected outputs for each
+              conversion type
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* English Example */}
+            {/* DFA Minimization Example */}
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                English Conversation Example
+                DFA Minimization Example
               </h3>
               <div className="space-y-4">
-                <div className="flex justify-end">
-                  <div className="chat-bubble-user rounded-2xl px-4 py-2 max-w-xs">
-                    <p className="text-sm text-white">
-                      What AI services does Zayd.ai provide for businesses?
-                    </p>
-                  </div>
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Input:
+                  </p>
+                  <code className="text-xs text-gray-600 block">
+                    "A: a--&gt;A, b--&gt;B; B: a--&gt;A, b--&gt;C; C: a--&gt;A,
+                    b--&gt;C; in:A; fi:C
+                  </code>
                 </div>
-                <div className="flex justify-start">
-                  <div className="chat-bubble-ai rounded-2xl px-4 py-2 max-w-xs">
-                    <p className="text-sm text-gray-800">
-                      Zayd.ai offers several AI services including natural
-                      language processing, bilingual customer support, automated
-                      responses, and intelligent conversation management. Would
-                      you like me to explain any specific service in detail?
-                    </p>
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <div className="chat-bubble-user rounded-2xl px-4 py-2 max-w-xs">
-                    <p className="text-sm text-white">
-                      Tell me more about bilingual support
-                    </p>
-                  </div>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <p className="text-sm font-medium text-green-700 mb-2">
+                    Output:
+                  </p>
+                  <code className="text-xs text-green-600 block">
+                    States: {"{q0, q1}"}
+                    <br />
+                    Transitions: δ(q0,a)=q0, δ(q0,b)=q1, δ(q1,a)=q0, δ(q1,b)=q1
+                    <br />
+                    Initial: q0, Final: {"{q1}"}
+                  </code>
                 </div>
               </div>
             </div>
 
-            {/* Arabic Example */}
+            {/* Regex to ε-NFA Example */}
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Arabic Conversation Example
+                Regex to ε-NFA Example
               </h3>
-              <div className="space-y-4" dir="rtl">
-                <div className="flex justify-start">
-                  <div className="chat-bubble-user rounded-2xl px-4 py-2 max-w-xs">
-                    <p className="text-sm text-white">
-                      ما هي خدمات الذكاء الاصطناعي التي يقدمها زيد؟
-                    </p>
-                  </div>
+              <div className="space-y-4">
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Input:
+                  </p>
+                  <code className="text-xs text-gray-600 block">a*b+</code>
                 </div>
-                <div className="flex justify-end">
-                  <div className="chat-bubble-ai rounded-2xl px-4 py-2 max-w-xs">
-                    <p className="text-sm text-gray-800">
-                      يقدم زيد خدمات متنوعة في الذكاء الاصطناعي مثل معالجة اللغة
-                      الطبيعية، دعم العملاء ثنائي اللغة، الردود الآلية، وإدارة
-                      المحادثات الذكية. هل تريد معرفة المزيد عن خدمة معينة؟
-                    </p>
-                  </div>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <p className="text-sm font-medium text-green-700 mb-2">
+                    Output:
+                  </p>
+                  <code className="text-xs text-green-600 block">
+                    States: {"{q0, q1, q2, q3}"}
+                    <br />
+                    ε-transitions: δ(q0,ε)={"{q1}"}, δ(q2,ε)={"{q3}"}
+                    <br />
+                    Transitions: δ(q1,a)={"{q1}"}, δ(q1,b)={"{q2}"}, δ(q2,b)=
+                    {"{q2}"}
+                  </code>
                 </div>
-                <div className="flex justify-start">
-                  <div className="chat-bubble-user rounded-2xl px-4 py-2 max-w-xs">
-                    <p className="text-sm text-white">
-                      أخبرني أكثر عن الدعم ثنائي اللغة
-                    </p>
-                  </div>
+              </div>
+            </div>
+
+            {/* ε-NFA to DFA Example */}
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                ε-NFA to DFA Example
+              </h3>
+              <div className="space-y-4">
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Input:
+                  </p>
+                  <code className="text-xs text-gray-600 block">
+                    q0: a--&gt;q1, ε--&gt;q2; q1: b--&gt;q2; q2: ε--&gt;q0;
+                    in:q0; fi:q2
+                  </code>
+                </div>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <p className="text-sm font-medium text-green-700 mb-2">
+                    Output:
+                  </p>
+                  <code className="text-xs text-green-600 block">
+                    States: {"{q0,q2}"}, {"{q1}"}, {"{q2}"}
+                    <br />
+                    Transitions: δ({"{q0,q2}"}, a) = {"{q1}"}
+                    <br />
+                    Initial: {"{q0,q2}"}, Final: {"{q0,q2}"}, {"{q2}"}
+                  </code>
+                </div>
+              </div>
+            </div>
+
+            {/* PDA Example */}
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Push Down Automata Example
+              </h3>
+              <div className="space-y-4">
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Input:
+                  </p>
+                  <code className="text-xs text-gray-600 block">aabb</code>
+                </div>
+                <div className="bg-green-50 rounded-lg p-3">
+                  <p className="text-sm font-medium text-green-700 mb-2">
+                    Output:
+                  </p>
+                  <code className="text-xs text-green-600 block">
+                    States: {"{q0, q1, q2}"}
+                    <br />
+                    Stack Alphabet: {"{Z, A}"}
+                    <br />
+                    {"δ(q0,a,Z)={(q1, AZ)}, δ(q1,a,A)={(q1, AA)}"}
+                    <br />
+                    {"δ(q1,b,A)={(q2, ε)}, δ(q2,b,A)={(q2, ε)}"}
+                  </code>
                 </div>
               </div>
             </div>
@@ -284,7 +349,7 @@ export default function InstructionsPage() {
               Best Practices
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Follow these guidelines for optimal AI interactions
+              Follow these guidelines for optimal automata theory conversions
             </p>
           </div>
 
@@ -295,10 +360,11 @@ export default function InstructionsPage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Do</h3>
               <ul className="text-gray-600 text-sm space-y-1 text-left">
-                <li>• Be specific and clear</li>
-                <li>• Provide context</li>
-                <li>• Ask one question at a time</li>
-                <li>• Use proper grammar</li>
+                <li>• Use correct format for each model type</li>
+                <li>• Provide clear, high-contrast images</li>
+                <li>• Start with simple examples</li>
+                <li>• Ask the AI for explanations</li>
+                <li>• Check conversion history for reference</li>
               </ul>
             </div>
 
@@ -310,10 +376,11 @@ export default function InstructionsPage() {
                 Don't
               </h3>
               <ul className="text-gray-600 text-sm space-y-1 text-left">
-                <li>• Use vague language</li>
-                <li>• Ask multiple questions together</li>
-                <li>• Expect personal information</li>
-                <li>• Use inappropriate content</li>
+                <li>• Mix different format styles</li>
+                <li>• Upload blurry or low-quality images</li>
+                <li>• Expect results for invalid inputs</li>
+                <li>• Ignore input format examples</li>
+                <li>• Skip validation of your automata</li>
               </ul>
             </div>
 
@@ -323,29 +390,94 @@ export default function InstructionsPage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Tips</h3>
               <ul className="text-gray-600 text-sm space-y-1 text-left">
-                <li>• Use examples when helpful</li>
-                <li>• Build on previous answers</li>
-                <li>• Ask for clarification</li>
-                <li>• Try different phrasings</li>
+                <li>• Use visualization to verify results</li>
+                <li>• Export diagrams for presentations</li>
+                <li>• Leverage AI for learning concepts</li>
+                <li>• Try different input representations</li>
+                <li>• Build complexity gradually</li>
               </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
+      {/* Technology Stack */}
       <section className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Technology Stack
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              State Forge is built on cutting-edge AI and web technologies
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-gray-50 rounded-lg p-6 text-center">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">🔥</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                PyTorch
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Neural network models with GPU acceleration support
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">🚀</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Streamlit
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Web application framework for interactive interfaces
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">🧠</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Google Gemini
+              </h3>
+              <p className="text-gray-600 text-sm">
+                AI-powered text extraction and conversational assistance
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">📊</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Graphviz
+              </h3>
+              <p className="text-gray-600 text-sm">
+                State diagram visualization and export functionality
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-16 light-yellow-bg">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Ready to Start?
+            Ready to Start Converting?
           </h2>
           <p className="text-gray-600 mb-8 text-lg">
-            Now that you know how to use Zayd.ai effectively, start your first
-            conversation!
+            Now that you understand State Forge's capabilities, start your first
+            automata theory conversion!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/chat" className="btn-primary inline-block">
-              Start Chatting
+              Start Converting
             </Link>
             <Link href="/" className="btn-secondary inline-block">
               Back to Home

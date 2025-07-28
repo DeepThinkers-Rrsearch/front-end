@@ -14,9 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ZAYD.AI - Transform Your Business with AI-Powered Engagement",
+  title:
+    "State Forge - Comprehensive Automata Theory & Formal Language Conversions",
   description:
-    "Effortlessly deliver exceptional Arabic and English customer interactions with our advanced AI solutions.",
+    "Advanced Streamlit-based web application for automata theory and formal language conversions with AI-powered assistance. Transform DFA, Regex to ε-NFA, ε-NFA to DFA, and PDA with intelligent neural networks.",
 };
 
 export default function RootLayout({
@@ -34,7 +35,7 @@ export default function RootLayout({
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
                 <Link href="/" className="text-2xl font-bold text-gray-900">
-                  ZAYD.AI
+                  State Forge
                 </Link>
               </div>
 
@@ -50,18 +51,14 @@ export default function RootLayout({
                     href="/chat"
                     className="text-gray-900 hover:text-yellow-600 px-3 py-2 text-sm font-medium transition-colors"
                   >
-                    Chat
+                    Conversions
                   </Link>
                   <Link
                     href="/instructions"
                     className="text-gray-900 hover:text-yellow-600 px-3 py-2 text-sm font-medium transition-colors"
                   >
-                    Instructions
+                    Documentation
                   </Link>
-                  <span className="text-gray-700 text-sm">عربي</span>
-                  <button className="bg-white border border-gray-300 rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-yellow-50 transition-colors">
-                    Log In
-                  </button>
                 </div>
               </div>
             </div>

@@ -12,51 +12,58 @@ export default function HomePage() {
             <div className="text-left">
               <div className="mb-8">
                 <span className="text-6xl font-bold text-yellow-400 opacity-30 absolute top-20 left-4 z-0">
-                  ZAYD
+                  STATE FORGE
                 </span>
               </div>
 
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 relative z-10">
-                Transform Your
+                Transform
                 <br />
-                <span className="text-gray-800">Business with AI-</span>
+                <span className="text-gray-800">Automata Theory with</span>
                 <br />
-                <span className="text-gray-800">Powered Engagement!</span>
+                <span className="text-gray-800">AI-Powered Intelligence!</span>
               </h1>
 
               <p className="text-lg text-gray-600 mb-8 max-w-md">
-                Effortlessly deliver exceptional Arabic and English customer
-                interactions with our advanced AI solutions.
+                Comprehensive Streamlit-based web application for automata
+                theory and formal language conversions powered by advanced
+                transformer networks.
               </p>
 
-              <button className="btn-primary inline-block">
-                Try Zayd free
-              </button>
+              <Link href="/chat" className="btn-primary inline-block">
+                Start Converting
+              </Link>
             </div>
 
-            {/* Right Column - Robot Illustration */}
+            {/* Right Column - State Machine Illustration */}
             <div className="flex justify-center lg:justify-end relative">
               <div className="robot-float">
-                {/* Robot SVG - Simplified orange robot */}
+                {/* State Machine Diagram */}
                 <div className="w-80 h-80 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full relative shadow-2xl">
-                  {/* Robot Head */}
-                  <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-orange-300 rounded-full">
-                    {/* Eyes */}
-                    <div className="absolute top-8 left-6 w-4 h-4 bg-cyan-400 rounded-full"></div>
-                    <div className="absolute top-8 right-6 w-4 h-4 bg-cyan-400 rounded-full"></div>
-                    {/* Mouth */}
-                    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-8 h-2 bg-orange-500 rounded"></div>
+                  {/* Central State */}
+                  <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-orange-300 rounded-full border-4 border-white">
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white font-bold text-lg">
+                      q0
+                    </div>
                   </div>
 
-                  {/* Robot Body */}
-                  <div className="absolute top-32 left-1/2 transform -translate-x-1/2 w-24 h-32 bg-white rounded-lg">
-                    <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-cyan-400 rounded-full"></div>
-                    <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-orange-200 rounded"></div>
+                  {/* State Transitions */}
+                  <div className="absolute top-32 left-1/2 transform -translate-x-1/2 w-24 h-32 bg-white rounded-lg flex flex-col items-center justify-center">
+                    <div className="text-sm font-bold text-gray-700">DFA</div>
+                    <div className="text-xs text-gray-500">Minimization</div>
                   </div>
 
-                  {/* Arms */}
-                  <div className="absolute top-40 -left-8 w-16 h-6 bg-orange-300 rounded-full transform -rotate-12"></div>
-                  <div className="absolute top-40 -right-8 w-16 h-6 bg-orange-300 rounded-full transform rotate-12"></div>
+                  {/* Additional States */}
+                  <div className="absolute top-40 -left-8 w-16 h-16 bg-orange-300 rounded-full border-2 border-white flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">q1</span>
+                  </div>
+                  <div className="absolute top-40 -right-8 w-16 h-16 bg-orange-300 rounded-full border-2 border-white flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">q2</span>
+                  </div>
+
+                  {/* Transition Arrows */}
+                  <div className="absolute top-44 left-12 w-12 h-1 bg-white rounded transform rotate-45"></div>
+                  <div className="absolute top-44 right-12 w-12 h-1 bg-white rounded transform -rotate-45"></div>
                 </div>
               </div>
             </div>
@@ -75,38 +82,57 @@ export default function HomePage() {
                 <br />
                 Intelligent
                 <br />
-                Conversations with
+                Automata Theory
                 <br />
-                Zayd.ai
+                Conversions
               </h2>
 
               <p className="text-gray-600 mb-8 leading-relaxed">
-                Zayd.ai transforms customer interactions through advanced AI
-                technology. Our bilingual chatbot delivers seamless
-                conversations in both Arabic and English, powered by
-                state-of-the-art natural language processing and machine
-                learning. Designed for various industries, Zayd.ai enhances
-                operational efficiency and customer satisfaction.
+                State Forge transforms automata theory education and research
+                through advanced AI technology. Our comprehensive platform
+                delivers seamless conversions between different automata types,
+                powered by state-of-the-art transformer-based neural networks
+                and intelligent conversational AI. Designed for students,
+                researchers, and educators in computer science.
               </p>
             </div>
 
-            {/* Right Column - Phone Mockup */}
+            {/* Right Column - Application Mockup */}
             <div className="flex justify-center">
               <div className="relative">
-                {/* Phone Frame */}
+                {/* Screen Frame */}
                 <div className="w-64 h-96 bg-black rounded-3xl p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-2xl overflow-hidden relative">
-                    {/* Phone Screen Content */}
+                    {/* Screen Content */}
                     <div className="h-full light-yellow-bg flex flex-col">
                       <div className="flex-1 p-4">
-                        <div className="text-center py-8">
-                          <div className="text-2xl font-bold text-gray-800 mb-2">
-                            ZAYD.AI
+                        <div className="text-center py-4">
+                          <div className="text-lg font-bold text-gray-800 mb-2">
+                            State Forge
                           </div>
-                          <div className="w-16 h-16 bg-orange-400 rounded-full mx-auto mb-4"></div>
-                          <div className="space-y-2">
-                            <div className="h-3 bg-yellow-200 rounded w-32 mx-auto"></div>
-                            <div className="h-3 bg-yellow-200 rounded w-24 mx-auto"></div>
+                          <div className="w-12 h-12 bg-orange-400 rounded-full mx-auto mb-3 flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">
+                              SF
+                            </span>
+                          </div>
+                          <div className="space-y-2 text-xs">
+                            <div className="h-2 bg-yellow-200 rounded w-32 mx-auto"></div>
+                            <div className="h-2 bg-yellow-200 rounded w-24 mx-auto"></div>
+                            <div className="h-2 bg-yellow-200 rounded w-28 mx-auto"></div>
+                          </div>
+                          <div className="mt-4 space-y-1">
+                            <div className="text-xs text-gray-600">
+                              DFA → Min DFA
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              Regex → ε-NFA
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              ε-NFA → DFA
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              PDA Processing
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -119,104 +145,119 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Arabic Section */}
+      {/* Core Features Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column - Arabic Content */}
-            <div className="text-right" dir="rtl">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                حوّل عملك من خلال
-                <br />
-                التفاعل المدعوم
-                <br />
-                بالذكاء الاصطناعي
-              </h2>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Four Main Conversion Models
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Advanced transformer-based neural networks for comprehensive
+              automata theory conversions
+            </p>
+          </div>
 
-              <p className="text-gray-600 mb-8 leading-relaxed">
-                منصة زيد تستطيع مع تقنيات الذكاء الاصطناعي المتطورة والتفاعلية
-                التي يمكن استخدامها حول الأذكى الاصطناعي. وننصح بإنشاء
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Feature Cards */}
+            <div className="bg-gray-50 rounded-lg p-6 shadow-lg zayd-shadow">
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
+                <span className="text-2xl">🔄</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                DFA Minimization
+              </h3>
+              <p className="text-gray-600">
+                Converts DFA to its minimized equivalent using custom
+                transformer models with character-level tokenization. Supports
+                both text input and AI-powered image processing.
               </p>
-
-              <button className="btn-primary">جرب زيد مجانًا</button>
             </div>
 
-            {/* Right Column - Robot */}
-            <div className="flex justify-center">
-              <div className="w-64 h-64 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full relative shadow-2xl robot-float">
-                {/* Simplified robot for Arabic section */}
-                <div className="absolute inset-4 bg-orange-300 rounded-full"></div>
-                <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-white rounded-full"></div>
-                <div className="absolute top-1/2 left-1/4 w-3 h-3 bg-cyan-400 rounded-full"></div>
-                <div className="absolute top-1/2 right-1/4 w-3 h-3 bg-cyan-400 rounded-full"></div>
+            <div className="bg-gray-50 rounded-lg p-6 shadow-lg zayd-shadow">
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
+                <span className="text-2xl">📝</span>
               </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Regex to ε-NFA
+              </h3>
+              <p className="text-gray-600">
+                Transforms regular expressions to Epsilon Non-deterministic
+                Finite Automata using advanced Seq2Seq transformer models with
+                positional encoding.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 shadow-lg zayd-shadow">
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
+                <span className="text-2xl">⚡</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                ε-NFA to DFA
+              </h3>
+              <p className="text-gray-600">
+                Converts Epsilon NFA to Deterministic Finite Automaton using
+                transformer encoder-decoder architecture with support for image
+                input processing.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 shadow-lg zayd-shadow">
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
+                <span className="text-2xl">📚</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Push Down Automata (PDA)
+              </h3>
+              <p className="text-gray-600">
+                Generates PDA transitions for context-free languages using
+                advanced TransformerPDA models with stack simulation
+                capabilities.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Specifications Section */}
+      {/* Advanced Features Section */}
       <section className="py-20 light-yellow-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Application Specifications
+              Advanced Features
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Discover the powerful features that make Zayd.ai the perfect
-              solution for your business needs.
+              Discover the powerful capabilities that make State Forge the
+              perfect solution for automata theory and formal language
+              processing.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature Cards */}
             <div className="bg-white rounded-lg p-6 shadow-lg zayd-shadow">
               <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
                 <span className="text-2xl">🤖</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                AI-Powered Conversations
+                AI-Powered Conversions
               </h3>
               <p className="text-gray-600">
-                Advanced natural language processing for intelligent customer
-                interactions.
+                Advanced neural networks with Google Gemini 2.0 Flash
+                integration for intelligent conversational assistance and text
+                extraction.
               </p>
             </div>
 
             <div className="bg-white rounded-lg p-6 shadow-lg zayd-shadow">
               <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
-                <span className="text-2xl">🌍</span>
+                <span className="text-2xl">🖼️</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Bilingual Support
+                Image Input Processing
               </h3>
               <p className="text-gray-600">
-                Seamless communication in both Arabic and English languages.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-lg zayd-shadow">
-              <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
-                <span className="text-2xl">⚡</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Real-time Processing
-              </h3>
-              <p className="text-gray-600">
-                Instant responses with lightning-fast AI processing
-                capabilities.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-lg zayd-shadow">
-              <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
-                <span className="text-2xl">🛡️</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Secure & Private
-              </h3>
-              <p className="text-gray-600">
-                Enterprise-grade security with complete data privacy protection.
+                Upload PNG, JPG, JPEG, SVG images of automata diagrams with
+                AI-powered text extraction and automatic state identification.
               </p>
             </div>
 
@@ -225,10 +266,24 @@ export default function HomePage() {
                 <span className="text-2xl">📊</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Analytics Dashboard
+                Graphical Visualization
               </h3>
               <p className="text-gray-600">
-                Comprehensive insights and analytics for business optimization.
+                Interactive Graphviz-powered state diagrams with zoom, pan
+                capabilities, and professional-quality PNG export functionality.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 shadow-lg zayd-shadow">
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
+                <span className="text-2xl">💾</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Conversion History
+              </h3>
+              <p className="text-gray-600">
+                Specialized stack data structures for each conversion type with
+                persistent session management and easy access to previous work.
               </p>
             </div>
 
@@ -237,10 +292,26 @@ export default function HomePage() {
                 <span className="text-2xl">🔧</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Easy Integration
+                PyTorch Integration
               </h3>
               <p className="text-gray-600">
-                Simple setup and integration with existing business systems.
+                Built on PyTorch with GPU acceleration support, custom
+                tokenizers, and character-level processing for optimal
+                performance.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 shadow-lg zayd-shadow">
+              <div className="w-12 h-12 bg-yellow-400 rounded-lg mb-4 flex items-center justify-center">
+                <span className="text-2xl">🧠</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Conversational AI
+              </h3>
+              <p className="text-gray-600">
+                LangGraph-powered conversation management with context
+                awareness, educational explanations, and step-by-step conversion
+                guidance.
               </p>
             </div>
           </div>
@@ -251,79 +322,107 @@ export default function HomePage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Team</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Our Research Team
+            </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Meet the dedicated professionals behind Zayd.ai's innovative
-              solutions.
+              Meet the dedicated professionals behind State Forge's innovative
+              automata theory solutions.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Supervisors */}
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-                Supervisors
-              </h3>
-              <div className="space-y-6">
-                <div className="bg-gray-50 rounded-lg p-6 text-center">
-                  <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-gray-900">S1</span>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900">
-                    Dr. [Supervisor Name]
-                  </h4>
-                  <p className="text-gray-600">Project Supervisor</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Leading AI research and development initiatives
-                  </p>
+          {/* Supervisors Section */}
+          <div className="mb-12">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
+              Project Supervisors
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-gray-900">PS</span>
                 </div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  [Principal Supervisor Name]
+                </h4>
+                <p className="text-gray-600">Principal Supervisor</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Leading automata theory research and AI-powered educational
+                  tools
+                </p>
+              </div>
 
-                <div className="bg-gray-50 rounded-lg p-6 text-center">
-                  <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-gray-900">S2</span>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900">
-                    Dr. [Co-Supervisor Name]
-                  </h4>
-                  <p className="text-gray-600">Co-Supervisor</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Specializing in natural language processing
-                  </p>
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-gray-900">CS</span>
                 </div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  [Co-Supervisor Name]
+                </h4>
+                <p className="text-gray-600">Co-Supervisor</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Specializing in transformer networks and formal language
+                  processing
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Developers */}
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
-                Developers
-              </h3>
-              <div className="space-y-6">
-                <div className="bg-gray-50 rounded-lg p-6 text-center">
-                  <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-gray-900">D1</span>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900">
-                    [Developer Name 1]
-                  </h4>
-                  <p className="text-gray-600">Lead Developer</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Full-stack development and AI integration
-                  </p>
+          {/* Developers Section */}
+          <div>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
+              Development Team
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-lg font-bold text-gray-900">D1</span>
                 </div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  [Developer Name 1]
+                </h4>
+                <p className="text-gray-600">Lead Developer</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Neural networks & Streamlit integration
+                </p>
+              </div>
 
-                <div className="bg-gray-50 rounded-lg p-6 text-center">
-                  <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-gray-900">D2</span>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900">
-                    [Developer Name 2]
-                  </h4>
-                  <p className="text-gray-600">Frontend Developer</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    UI/UX design and frontend implementation
-                  </p>
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-lg font-bold text-gray-900">D2</span>
                 </div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  [Developer Name 2]
+                </h4>
+                <p className="text-gray-600">ML Engineer</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  PyTorch models & transformer architecture
+                </p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-lg font-bold text-gray-900">D3</span>
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  [Developer Name 3]
+                </h4>
+                <p className="text-gray-600">AI Specialist</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Conversational AI & LangGraph integration
+                </p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-lg font-bold text-gray-900">D4</span>
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  [Developer Name 4]
+                </h4>
+                <p className="text-gray-600">Frontend Developer</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  UI/UX design & visualization systems
+                </p>
               </div>
             </div>
           </div>
@@ -335,11 +434,11 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Contact Us
+              Contact Our Research Team
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Ready to transform your business with AI? Get in touch with our
-              team today.
+              Ready to explore automata theory with AI? Get in touch with our
+              research team for collaboration and support.
             </p>
           </div>
 
@@ -358,28 +457,32 @@ export default function HomePage() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">Email</p>
-                        <p className="text-gray-600">contact@zayd.ai</p>
+                        <p className="text-gray-600">research@stateforge.edu</p>
                       </div>
                     </div>
 
                     <div className="flex items-center">
                       <div className="w-10 h-10 bg-yellow-400 rounded-lg mr-4 flex items-center justify-center">
-                        <span className="text-gray-900">📱</span>
+                        <span className="text-gray-900">🏛️</span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">Phone</p>
-                        <p className="text-gray-600">+1 (555) 123-4567</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-yellow-400 rounded-lg mr-4 flex items-center justify-center">
-                        <span className="text-gray-900">📍</span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Office</p>
+                        <p className="font-medium text-gray-900">Institution</p>
                         <p className="text-gray-600">
-                          123 AI Street, Tech City
+                          Computer Science Department
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-yellow-400 rounded-lg mr-4 flex items-center justify-center">
+                        <span className="text-gray-900">🔬</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Research Focus
+                        </p>
+                        <p className="text-gray-600">
+                          Automata Theory & AI Education
                         </p>
                       </div>
                     </div>
@@ -414,12 +517,26 @@ export default function HomePage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Research Interest
+                    </label>
+                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent">
+                      <option>DFA Minimization</option>
+                      <option>Regular Expression Processing</option>
+                      <option>Epsilon NFA Conversions</option>
+                      <option>Push Down Automata</option>
+                      <option>AI in Education</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Message
                     </label>
                     <textarea
                       rows={4}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                      placeholder="Tell us about your project..."
+                      placeholder="Tell us about your research interest or question..."
                     ></textarea>
                   </div>
 
@@ -437,9 +554,9 @@ export default function HomePage() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="text-2xl font-bold mb-4">ZAYD.AI</div>
+            <div className="text-2xl font-bold mb-4">State Forge</div>
             <p className="text-gray-400 mb-8">
-              Transform Your Business with AI-Powered Engagement
+              Comprehensive Automata Theory & Formal Language Conversions
             </p>
             <div className="flex justify-center space-x-6">
               <Link
@@ -452,17 +569,17 @@ export default function HomePage() {
                 href="/chat"
                 className="text-gray-400 hover:text-yellow-400 transition-colors"
               >
-                Chat
+                Conversions
               </Link>
               <Link
                 href="/instructions"
                 className="text-gray-400 hover:text-yellow-400 transition-colors"
               >
-                Instructions
+                Documentation
               </Link>
             </div>
             <div className="mt-8 pt-8 border-t border-gray-800 text-gray-500 text-sm">
-              © 2024 ZAYD.AI. All rights reserved.
+              © 2024 State Forge Research Team. All rights reserved.
             </div>
           </div>
         </div>
