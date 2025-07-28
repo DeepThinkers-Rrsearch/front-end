@@ -14,7 +14,7 @@ interface Message {
 const MODELS = {
   DFA_MINIMIZATION: "DFA-Minimization",
   REGEX_TO_E_NFA: "Regex-to-ε-NFA",
-  E_NFA_TO_DFA: "e_NFA-to-DFA",
+  E_NFA_TO_DFA: "ε-NFA-to-DFA",
   PDA: "PDA",
 } as const;
 
@@ -24,7 +24,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      content: "Hello! I'm Zayd, your AI assistant. How can I help you today?",
+      content:
+        "Hello! I'm your State Forge AI assistant. I can help you understand automata theory conversions and explain the results. How can I assist you today?",
       role: "assistant",
       timestamp: new Date(),
     },
@@ -47,6 +48,21 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
+  const getModelPlaceholder = (model: ModelType) => {
+    switch (model) {
+      case MODELS.DFA_MINIMIZATION:
+        return "Enter your DFA description (states, transitions, initial/final states)\nExample: A: a-->A, b-->B; B: a-->A, b-->A; in:A; fi:A";
+      case MODELS.REGEX_TO_E_NFA:
+        return "Enter your regular expression\nExample: a*b+ or (a|b)* or a+b*c";
+      case MODELS.E_NFA_TO_DFA:
+        return "Enter your ε-NFA description\nExample: q0: a-->q1, ε-->q2; q1: b-->q2; q2: ε-->q0; in:q0; fi:q2";
+      case MODELS.PDA:
+        return "Enter your language example string...\nExample: aabb (a^nb^n) or aaabbb";
+      default:
+        return "Enter your input...";
+    }
+  };
+
   const handleConvert = async () => {
     if (!modelInput.trim() || isConverting) return;
 
@@ -55,7 +71,7 @@ export default function ChatPage() {
 
     try {
       // Demo API call - replace with actual API endpoint
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/convert`, {
+      const response = await fetch(`/api/convert`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,12 +93,15 @@ export default function ChatPage() {
 
       // Demo fallback responses for different models
       const demoResults = {
-        [MODELS.DFA_MINIMIZATION]: `Demo: Minimized DFA for input "${modelInput}"\nStates: q0, q1, q2\nTransitions: δ(q0,a)=q1, δ(q1,b)=q2\nAccepting states: {q2}`,
-        [MODELS.REGEX_TO_E_NFA]: `Demo: ε-NFA for regex "${modelInput}"\nStates: q0, q1, q2, q3\nε-transitions: q0→q1, q2→q3\nTransitions: δ(q1,${
+        [MODELS.DFA_MINIMIZATION]: `Demo: Minimized DFA for input "${modelInput}"\n\nStates: \\{q0, q1\\}\nAlphabet: \\{a, b\\}\nTransitions:\n  δ(q0, a) = q0\n  δ(q0, b) = q1\n  δ(q1, a) = q0\n  δ(q1, b) = q1\nInitial State: q0\nFinal States: \\{q1\\}\n\nMinimization complete! Original had 3 states, minimized has 2 states.`,
+        [MODELS.REGEX_TO_E_NFA]: `Demo: ε-NFA for regex "${modelInput}"\n\nStates: \\{q0, q1, q2, q3\\}\nAlphabet: \\{${modelInput
+          .replace(/[^a-zA-Z]/g, "")
+          .split("")
+          .join(", ")}\\}\nTransitions:\n  δ(q0, ε) = \\{q1\\}\n  δ(q1, ${
           modelInput.charAt(0) || "a"
-        })=q2`,
-        [MODELS.E_NFA_TO_DFA]: `Demo: DFA converted from ε-NFA "${modelInput}"\nStates: {q0}, {q1,q2}, {q3}\nTransitions: δ({q0},a)={q1,q2}\nAccepting states: {{q3}}`,
-        [MODELS.PDA]: `Demo: PDA for input "${modelInput}"\nStates: q0, q1, q2\nStack alphabet: {Z, A, B}\nTransitions: δ(q0,a,Z)=(q1,AZ)\nAccepting by empty stack`,
+        }) = \\{q2\\}\n  δ(q2, ε) = \\{q3\\}\nInitial State: q0\nFinal States: \\{q3\\}\n\nε-NFA construction complete!`,
+        [MODELS.E_NFA_TO_DFA]: `Demo: DFA converted from ε-NFA "${modelInput}"\n\nStates: \\{\\{q0\\}, \\{q1,q2\\}, \\{q3\\}\\}\nAlphabet: \\{a, b\\}\nTransitions:\n  δ(\\{q0\\}, a) = \\{q1,q2\\}\n  δ(\\{q0\\}, b) = \\{q0\\}\n  δ(\\{q1,q2\\}, a) = \\{q3\\}\n  δ(\\{q1,q2\\}, b) = \\{q1,q2\\}\nInitial State: \\{q0\\}\nFinal States: \\{\\{q3\\}\\}\n\nSubset construction complete!`,
+        [MODELS.PDA]: `Demo: PDA for input "${modelInput}"\n\nStates: \\{q0, q1, q2\\}\nInput Alphabet: \\{a, b\\}\nStack Alphabet: \\{Z, A, B\\}\nTransitions:\n  δ(q0, a, Z) = \\{(q1, AZ)\\}\n  δ(q1, a, A) = \\{(q1, AA)\\}\n  δ(q1, b, A) = \\{(q2, ε)\\}\n  δ(q2, b, A) = \\{(q2, ε)\\}\n  δ(q2, ε, Z) = \\{(q2, ε)\\}\nInitial State: q0\nStart Symbol: Z\nAcceptance: Empty Stack\n\nPDA construction complete for L = \\{a^n b^n | n ≥ 1\\}`,
       };
 
       setConvertResult(
@@ -123,6 +142,10 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           messages: langGraphMessages,
+          context: {
+            selectedModel,
+            lastConversion: convertResult,
+          },
         }),
       });
 
@@ -147,7 +170,7 @@ export default function ChatPage() {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content:
-          "Sorry, I'm having trouble responding right now. Please try again.",
+          "Sorry, I'm having trouble responding right now. Please try again. You can still use the conversion models on the left sidebar.",
         role: "assistant",
         timestamp: new Date(),
       };
@@ -159,37 +182,13 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen light-yellow-bg">
-      {/* Chat Header */}
-      {/* <div className="bg-white border-b border-yellow-200 sticky top-16 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">Z</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">
-                  Chat with Zayd
-                </h1>
-                <p className="text-sm text-gray-500">AI Assistant • Online</p>
-              </div>
-            </div>
-
-            <Link
-              href="/instructions"
-              className="text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-lg hover:bg-yellow-200 transition-colors"
-            >
-              View Instructions
-            </Link>
-          </div>
-        </div>
-      </div> */}
-
       <div className="flex max-w-7xl mx-auto">
         {/* Left Sidebar - Model Selection */}
         <div className="hidden lg:block w-80 bg-white border-r border-yellow-200 min-h-screen">
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Models</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Conversion Models
+            </h2>
 
             {/* Model Selection */}
             <div className="space-y-3 mb-6">
@@ -238,8 +237,8 @@ export default function ChatPage() {
                 <textarea
                   value={modelInput}
                   onChange={(e) => setModelInput(e.target.value)}
-                  placeholder={`Enter input for ${selectedModel}...`}
-                  rows={4}
+                  placeholder={getModelPlaceholder(selectedModel)}
+                  rows={6}
                   className="w-full px-3 py-2 border border-yellow-300 bg-yellow-50 rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
                 />
                 <button
@@ -258,8 +257,8 @@ export default function ChatPage() {
                 <h4 className="text-md font-medium text-gray-900">
                   Conversion Result
                 </h4>
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <pre className="text-sm text-green-800 whitespace-pre-wrap font-mono">
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
+                  <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
                     {convertResult}
                   </pre>
                 </div>
@@ -274,6 +273,10 @@ export default function ChatPage() {
                 </span>
                 <br />
                 <span className="text-yellow-600">{selectedModel}</span>
+                <br />
+                <span className="text-xs text-yellow-500 mt-1 block">
+                  PyTorch Transformer Model
+                </span>
               </div>
             </div>
           </div>
@@ -302,7 +305,7 @@ export default function ChatPage() {
                   >
                     {message.role === "assistant" ? (
                       <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">Z</span>
+                        <span className="text-white font-bold text-xs">SF</span>
                       </div>
                     ) : (
                       <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
@@ -348,7 +351,7 @@ export default function ChatPage() {
               <div className="flex justify-start">
                 <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">Z</span>
+                    <span className="text-white font-bold text-xs">SF</span>
                   </div>
                   <div className="chat-bubble-ai rounded-2xl px-4 py-3">
                     <div className="flex space-x-1">
@@ -381,7 +384,7 @@ export default function ChatPage() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type your message here..."
+                placeholder="Ask about automata theory, conversions, or get help with your results..."
                 className="w-full px-4 py-3 pr-12 border border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent light-yellow-bg"
                 disabled={isLoading}
               />
@@ -410,49 +413,59 @@ export default function ChatPage() {
           {/* Input Suggestions */}
           <div className="mt-3 flex flex-wrap gap-2">
             <button
-              onClick={() => setInputValue("What services does Zayd.ai offer?")}
-              className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full hover:bg-yellow-200 transition-colors"
-            >
-              What services does Zayd.ai offer?
-            </button>
-            <button
               onClick={() =>
-                setInputValue("How does the AI conversation work?")
+                setInputValue("Explain how DFA minimization works")
               }
               className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full hover:bg-yellow-200 transition-colors"
             >
-              How does the AI conversation work?
+              Explain how DFA minimization works
             </button>
             <button
-              onClick={() => setInputValue("Can you help me in Arabic?")}
+              onClick={() =>
+                setInputValue("What is the difference between NFA and DFA?")
+              }
               className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full hover:bg-yellow-200 transition-colors"
             >
-              Can you help me in Arabic?
+              What is the difference between NFA and DFA?
+            </button>
+            <button
+              onClick={() => setInputValue("How does epsilon closure work?")}
+              className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full hover:bg-yellow-200 transition-colors"
+            >
+              How does epsilon closure work?
+            </button>
+            <button
+              onClick={() => setInputValue("Explain my conversion result")}
+              className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full hover:bg-yellow-200 transition-colors"
+            >
+              Explain my conversion result
             </button>
           </div>
         </div>
       </div>
 
-      {/* Sidebar with Chat Features */}
+      {/* Sidebar with Automata Features */}
       <div className="fixed right-4 top-1/2 transform -translate-y-1/2 hidden xl:block">
         <div className="bg-white rounded-lg shadow-lg p-4 w-64 border border-yellow-200">
-          <h3 className="font-semibold text-gray-900 mb-3">Chat Features</h3>
+          <h3 className="font-semibold text-gray-900 mb-3">
+            Automata Features
+          </h3>
           <div className="space-y-3 text-sm">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-600">Real-time responses</span>
+              <span className="text-gray-600">Neural network models</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-600">Bilingual support</span>
+              <span className="text-gray-600">Image input processing</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-600">Context awareness</span>
+              <span className="text-gray-600">Graphical visualization</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-600">Smart suggestions</span>
+              <span className="text-gray-600">Educational AI assistance</span>
             </div>
           </div>
 
@@ -460,16 +473,16 @@ export default function ChatPage() {
             <h4 className="font-medium text-gray-900 mb-2">Quick Actions</h4>
             <div className="space-y-2">
               <button className="w-full text-left text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded hover:bg-yellow-100 transition-colors">
-                Clear conversation
+                Clear chat history
               </button>
               <button className="w-full text-left text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded hover:bg-yellow-100 transition-colors">
-                Download chat
+                View conversion history
               </button>
               <Link
                 href="/instructions"
                 className="block w-full text-left text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded hover:bg-yellow-100 transition-colors"
               >
-                View help
+                View documentation
               </Link>
             </div>
           </div>
