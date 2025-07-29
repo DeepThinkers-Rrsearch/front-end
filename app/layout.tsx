@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title:
     "State Forge - Comprehensive Automata Theory & Formal Language Conversions",
   description:
-    "Advanced Streamlit-based web application for automata theory and formal language conversions with AI-powered assistance. Transform DFA, Regex to ε-NFA, ε-NFA to DFA, and PDA with intelligent neural networks.",
+    "Advanced web application for automata theory and formal language conversions with AI-powered assistance. Transform DFA, Regex to ε-NFA, ε-NFA to DFA, and PDA with intelligent neural networks.",
 };
 
 export default function RootLayout({

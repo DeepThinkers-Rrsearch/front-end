@@ -25,9 +25,9 @@ export default function HomePage() {
               </h1>
 
               <p className="text-lg text-gray-600 mb-8 max-w-md">
-                Comprehensive Streamlit-based web application for automata
-                theory and formal language conversions powered by advanced
-                transformer networks.
+                Comprehensive AI-based web application for automata theory and
+                formal language conversions powered by advanced transformer
+                networks.
               </p>
 
               <Link href="/chat" className="btn-primary inline-block">
@@ -49,8 +49,10 @@ export default function HomePage() {
 
                   {/* State Transitions */}
                   <div className="absolute top-32 left-1/2 transform -translate-x-1/2 w-24 h-32 bg-white rounded-lg flex flex-col items-center justify-center">
-                    <div className="text-sm font-bold text-gray-700">DFA</div>
-                    <div className="text-xs text-gray-500">Minimization</div>
+                    <div className="text-sm font-bold text-gray-700">
+                      AUTOMATA
+                    </div>
+                    <div className="text-xs text-gray-500">Conversions</div>
                   </div>
 
                   {/* Additional States */}
@@ -333,9 +335,9 @@ export default function HomePage() {
 
           {/* Supervisors Section */}
           <div className="mb-12">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
+            {/* <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
               Research Supervisors
-            </h3>
+            </h3> */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               <div className="bg-gray-50 rounded-lg p-6 text-center">
                 <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -344,10 +346,10 @@ export default function HomePage() {
                 <h4 className="text-lg font-semibold text-gray-900">
                   Dr. I.T.S. Piyatilake
                 </h4>
-                <p className="text-gray-600">Principal Supervisor</p>
+                <p className="text-gray-600">Senior Lecturer</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  Senior Lecturer, Department of Computational Mathematics,
-                  University of Moratuwa
+                  Department of Computational Mathematics, University of
+                  Moratuwa
                 </p>
               </div>
 
@@ -358,10 +360,9 @@ export default function HomePage() {
                 <h4 className="text-lg font-semibold text-gray-900">
                   Dr. C.P. Wijesiriwardena
                 </h4>
-                <p className="text-gray-600">Co-Supervisor</p>
+                <p className="text-gray-600">Senior Lecturer</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  Senior Lecturer Grade, Department of Information Technology,
-                  University of Moratuwa
+                  Department of Information Technology, University of Moratuwa
                 </p>
               </div>
             </div>
@@ -369,9 +370,9 @@ export default function HomePage() {
 
           {/* Developers Section */}
           <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
+            {/* <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
               Research Team
-            </h3>
+            </h3> */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-gray-50 rounded-lg p-6 text-center">
                 <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -449,7 +450,7 @@ export default function HomePage() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">Email</p>
-                        <p className="text-gray-600">research@stateforge.edu</p>
+                        <p className="text-gray-600">contact@webvisuals.org</p>
                       </div>
                     </div>
 

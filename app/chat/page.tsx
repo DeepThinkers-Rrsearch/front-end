@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-
 interface Message {
   id: string;
   content: string;
@@ -65,22 +64,24 @@ export default function ChatPage() {
 
   const handleConvert = async () => {
     if (!modelInput.trim() || isConverting) return;
-
     setIsConverting(true);
     setConvertResult("");
 
     try {
       // Demo API call - replace with actual API endpoint
-      const response = await fetch(`/api/convert`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          input_text: modelInput,
-          model_type: selectedModel,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            input_text: modelInput,
+            model_type: selectedModel,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);

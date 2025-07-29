@@ -128,3 +128,5 @@ This project is part of automata theory and formal language processing research,
 **Repository**: fyp-front  
 **Branch**: chanaka  
 **Maintainer**: DeepThinkers-Research
+
+## Langchain js link - https://js.langchain.com/docs/tutorials/chatbot/
