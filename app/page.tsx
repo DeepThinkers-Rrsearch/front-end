@@ -334,7 +334,7 @@ export default function HomePage() {
           {/* Supervisors Section */}
           <div className="mb-12">
             <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
-              Project Supervisors
+              Research Supervisors
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               <div className="bg-gray-50 rounded-lg p-6 text-center">
@@ -342,12 +342,12 @@ export default function HomePage() {
                   <span className="text-2xl font-bold text-gray-900">PS</span>
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  [Principal Supervisor Name]
+                  Dr. I.T.S. Piyatilake
                 </h4>
                 <p className="text-gray-600">Principal Supervisor</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  Leading automata theory research and AI-powered educational
-                  tools
+                  Senior Lecturer, Department of Computational Mathematics,
+                  University of Moratuwa
                 </p>
               </div>
 
@@ -356,12 +356,12 @@ export default function HomePage() {
                   <span className="text-2xl font-bold text-gray-900">CS</span>
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  [Co-Supervisor Name]
+                  Dr. C.P. Wijesiriwardena
                 </h4>
                 <p className="text-gray-600">Co-Supervisor</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  Specializing in transformer networks and formal language
-                  processing
+                  Senior Lecturer Grade, Department of Information Technology,
+                  University of Moratuwa
                 </p>
               </div>
             </div>
@@ -370,7 +370,7 @@ export default function HomePage() {
           {/* Developers Section */}
           <div>
             <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
-              Development Team
+              Research Team
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-gray-50 rounded-lg p-6 text-center">
@@ -378,12 +378,10 @@ export default function HomePage() {
                   <span className="text-lg font-bold text-gray-900">D1</span>
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  [Developer Name 1]
+                  Galappaththi S.S
                 </h4>
-                <p className="text-gray-600">Lead Developer</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Neural networks & Streamlit integration
-                </p>
+                <p className="text-gray-600">University of Moratuwa</p>
+                <p className="text-sm text-gray-500 mt-2">DFA → Min DFA</p>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-6 text-center">
@@ -391,12 +389,10 @@ export default function HomePage() {
                   <span className="text-lg font-bold text-gray-900">D2</span>
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  [Developer Name 2]
+                  Madushan A.K.I
                 </h4>
-                <p className="text-gray-600">ML Engineer</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  PyTorch models & transformer architecture
-                </p>
+                <p className="text-gray-600">University of Moratuwa</p>
+                <p className="text-sm text-gray-500 mt-2">PDA Processing</p>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-6 text-center">
@@ -404,12 +400,10 @@ export default function HomePage() {
                   <span className="text-lg font-bold text-gray-900">D3</span>
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  [Developer Name 3]
+                  Jayasinghe P.S
                 </h4>
-                <p className="text-gray-600">AI Specialist</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Conversational AI & LangGraph integration
-                </p>
+                <p className="text-gray-600">University of Moratuwa</p>
+                <p className="text-sm text-gray-500 mt-2">ε-NFA → DFA</p>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-6 text-center">
@@ -417,12 +411,10 @@ export default function HomePage() {
                   <span className="text-lg font-bold text-gray-900">D4</span>
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  [Developer Name 4]
+                  Dissanayaka D.M.C.P
                 </h4>
-                <p className="text-gray-600">Frontend Developer</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  UI/UX design & visualization systems
-                </p>
+                <p className="text-gray-600">University of Moratuwa</p>
+                <p className="text-sm text-gray-500 mt-2">Regex → ε-NFA</p>
               </div>
             </div>
           </div>
@@ -467,9 +459,7 @@ export default function HomePage() {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">Institution</p>
-                        <p className="text-gray-600">
-                          Computer Science Department
-                        </p>
+                        <p className="text-gray-600">University of Moratuwa</p>
                       </div>
                     </div>
 
