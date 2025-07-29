@@ -333,41 +333,6 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Supervisors Section */}
-          <div className="mb-12">
-            {/* <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
-              Research Supervisors
-            </h3> */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-900">PS</span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Dr. I.T.S. Piyatilake
-                </h4>
-                <p className="text-gray-600">Senior Lecturer</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Department of Computational Mathematics, University of
-                  Moratuwa
-                </p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-900">CS</span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Dr. C.P. Wijesiriwardena
-                </h4>
-                <p className="text-gray-600">Senior Lecturer</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Department of Information Technology, University of Moratuwa
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Developers Section */}
           <div>
             {/* <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
@@ -416,6 +381,39 @@ export default function HomePage() {
                 </h4>
                 <p className="text-gray-600">University of Moratuwa</p>
                 <p className="text-sm text-gray-500 mt-2">Regex → ε-NFA</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Supervisors Section */}
+          <div className="mb-12">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center"></h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-gray-900">PS</span>
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  Dr. I.T.S. Piyatilake
+                </h4>
+                <p className="text-gray-600">Senior Lecturer</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Department of Computational Mathematics, University of
+                  Moratuwa
+                </p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-gray-900">CS</span>
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  Dr. C.P. Wijesiriwardena
+                </h4>
+                <p className="text-gray-600">Senior Lecturer</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Department of Information Technology, University of Moratuwa
+                </p>
               </div>
             </div>
           </div>
@@ -570,7 +568,7 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="mt-8 pt-8 border-t border-gray-800 text-gray-500 text-sm">
-              © 2024 State Forge Research Team. All rights reserved.
+              © 2025 Deep Thinkers Research Team. All rights reserved.
             </div>
           </div>
         </div>
