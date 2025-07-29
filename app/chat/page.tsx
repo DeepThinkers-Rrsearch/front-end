@@ -269,6 +269,25 @@ export default function ChatPage() {
                 </span>
               </div>
             </div>
+
+         <div className="mt-9 pt-6 border-t border-gray-200">
+  <h4 className="font-medium text-gray-900 mb-2 text-center">Quick Actions</h4>
+  <div className="flex flex-col items-center gap-2">
+    <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]">
+      <span className="mr-1">🧹</span> Clear Chat History
+    </button>
+    <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]">
+      📄 View Conversion History
+    </button>
+    <Link
+      href="/instructions"
+      className="flex items-center gap-2 text-sm bg-yellow-400 text-white px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-500 transition-colors w-[200px]"
+    >
+      <span className="mr-1">📘</span> View Documentation
+    </Link>
+  </div>
+</div>
+
           </div>
         </div>
 
@@ -674,50 +693,6 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Sidebar with Automata Features */}
-      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 hidden xl:block">
-        <div className="bg-white rounded-lg shadow-lg p-4 w-64 border border-yellow-200">
-          <h3 className="font-semibold text-gray-900 mb-3">
-            Automata Features
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-600">Neural network models</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-600">Image input processing</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-600">Graphical visualization</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-gray-600">Educational AI assistance</span>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <h4 className="font-medium text-gray-900 mb-2">Quick Actions</h4>
-            <div className="space-y-2">
-              <button className="w-full text-left text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded hover:bg-yellow-100 transition-colors">
-                Clear chat history
-              </button>
-              <button className="w-full text-left text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded hover:bg-yellow-100 transition-colors">
-                View conversion history
-              </button>
-              <Link
-                href="/instructions"
-                className="block w-full text-left text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded hover:bg-yellow-100 transition-colors"
-              >
-                View documentation
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
