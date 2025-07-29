@@ -182,7 +182,9 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen light-yellow-bg">
-      <div className="flex max-w-7xl mx-auto">
+      {/* <div className="flex max-w-7xl mx-auto"> */}
+      <div className="flex w-full">
+
         {/* Left Sidebar - Model Selection */}
         <div className="hidden lg:block w-80 bg-white border-r border-yellow-200 min-h-screen">
           <div className="p-6">
@@ -227,29 +229,6 @@ export default function ChatPage() {
               ))}
             </div>
 
-            {/* Model Input Field */}
-            <div className="space-y-4">
-              <h3 className="text-md font-medium text-gray-900">Model Input</h3>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Input for {selectedModel}
-                </label>
-                <textarea
-                  value={modelInput}
-                  onChange={(e) => setModelInput(e.target.value)}
-                  placeholder={getModelPlaceholder(selectedModel)}
-                  rows={6}
-                  className="w-full px-3 py-2 border border-yellow-300 bg-yellow-50 rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
-                />
-                <button
-                  onClick={handleConvert}
-                  disabled={!modelInput.trim() || isConverting}
-                  className="w-full mt-3 px-4 py-2 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isConverting ? "Converting..." : "Convert"}
-                </button>
-              </div>
-            </div>
 
             {/* Conversion Result */}
             {convertResult && (
@@ -284,7 +263,58 @@ export default function ChatPage() {
 
         {/* Main Chat Area */}
         <div className="flex-1 px-4 py-6">
-          <div className="space-y-6 mb-24">
+          <div className="space-y-4 mb-24">
+            <h3 className="text-md font-medium text-gray-900">Image Input</h3>
+            {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
+            <div className="border border-yellow-300 rounded-xl p-4 bg-white">
+            <label className="block text-sm font-semibold text-gray-800 mb-3">
+              {selectedModel === MODELS.DFA_MINIMIZATION
+                ? "Upload DFA Diagram"
+                : "Upload ε-NFA Diagram"}
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              className="block w-full text-sm text-gray-700 
+                file:mr-4 
+                file:py-2 
+                file:px-4 
+                file:rounded-lg 
+                file:border 
+                file:border-gray-300 
+                file:text-sm 
+                file:font-medium 
+                file:bg-yellow-400 
+                file:text-white
+                hover:file:bg-yellow-300"
+            />
+          </div>
+          )}
+
+             {/* Model Input Field */}
+            <div className="space-y-4">
+              <h3 className="text-md font-medium text-gray-900">Model Input</h3>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Input for {selectedModel}
+                </label>
+                <textarea
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  placeholder={getModelPlaceholder(selectedModel)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-yellow-300 bg-yellow-50 rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
+                />
+                <button
+                  onClick={handleConvert}
+                  disabled={!modelInput.trim() || isConverting}
+                  className="w-full mt-3 px-4 py-2 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isConverting ? "Converting..." : "Convert"}
+                </button>
+              </div>
+            </div>
+            
             {messages.map((message) => (
               <div
                 key={message.id}
