@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import {PDAStack,DFA_MINI_Stack,E_NFA_Stack,REGEX_Stack} from "../../utils/stacks/index"
 
 interface Message {
   id: string;
@@ -39,6 +40,13 @@ export default function ChatPage() {
   const [isConverting, setIsConverting] = useState(false);
   const [convertResult, setConvertResult] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // creating stack instances
+
+  const PDA_Stack_Instance = new PDAStack();
+  const DFA_MINI_Stack_Instance = new DFA_MINI_Stack();
+  const E_NFA_Stack_Instance = new E_NFA_Stack();
+  const REGEX_Stack_Instance = new REGEX_Stack();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,6 +96,25 @@ export default function ChatPage() {
 
       const data = await response.json();
       setConvertResult(data.result);
+      
+      switch(selectedModel)
+      {
+        case "DFA-Minimization":
+          DFA_MINI_Stack_Instance.push(inputValue,data.result)
+          break;
+        case "Regex-to-ε-NFA":
+          REGEX_Stack_Instance.push(inputValue,data.result)
+          break;
+        case "ε-NFA-to-DFA":
+          E_NFA_Stack_Instance.push(inputValue,data.result)
+          break;
+        case "PDA":
+          PDA_Stack_Instance.push(inputValue,data.result)
+          break;
+      }
+      // add the conversion result to the 
+
+
     } catch (error) {
       console.error("Conversion failed:", error);
 

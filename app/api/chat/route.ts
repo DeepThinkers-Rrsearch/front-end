@@ -1,4 +1,4 @@
-import { setup_llm } from "@/lib/llm";
+import { setup_llm } from "@/utils/llm";
 import { NextRequest, NextResponse } from "next/server";
 
 // Initialize the LLM once (could be moved to a singleton pattern)
