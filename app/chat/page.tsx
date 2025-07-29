@@ -40,6 +40,12 @@ export default function ChatPage() {
   const [convertResult, setConvertResult] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [showModal, setShowModal] = useState(false);
+  const [initialState, setInitialState] = useState("");
+  const [finalState, setFinalState] = useState("");
+  const [alphabet, setAlphabet] = useState("");
+  const [transitions, setTransitions] = useState([{ from: "", input: "", to: "" }]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -48,6 +54,11 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+  setModelInput(""); // clear model input when model changes
+  }, [selectedModel]);
+
+
   const getModelPlaceholder = (model: ModelType) => {
     switch (model) {
       case MODELS.DFA_MINIMIZATION:
@@ -55,7 +66,7 @@ export default function ChatPage() {
       case MODELS.REGEX_TO_E_NFA:
         return "Enter your regular expression\nExample: a*b+ or (a|b)* or a+b*c";
       case MODELS.E_NFA_TO_DFA:
-        return "Enter your ε-NFA description\nExample: q0: a-->q1, ε-->q2; q1: b-->q2; q2: ε-->q0; in:q0; fi:q2";
+        return "Enter your ε-NFA description\nStructure: 'In:{Initial_state};Fi:{Final_states};Abt:{Alphabet};Trn:{Transitions}' ";
       case MODELS.PDA:
         return "Enter your language example string...\nExample: aabb (a^nb^n) or aaabbb";
       default:
@@ -264,7 +275,6 @@ export default function ChatPage() {
         {/* Main Chat Area */}
         <div className="flex-1 px-4 py-6">
           <div className="space-y-4 mb-24">
-            <h3 className="text-md font-medium text-gray-900">Image Input</h3>
             {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
             <div className="border border-yellow-300 rounded-xl p-4 bg-white">
             <label className="block text-sm font-semibold text-gray-800 mb-3">
@@ -291,29 +301,219 @@ export default function ChatPage() {
           </div>
           )}
 
-             {/* Model Input Field */}
+             {/* Model Text Input Field */}
             <div className="space-y-4">
-              <h3 className="text-md font-medium text-gray-900">Model Input</h3>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700">
                   Input for {selectedModel}
                 </label>
+              <div className="space-y-2">
                 <textarea
                   value={modelInput}
                   onChange={(e) => setModelInput(e.target.value)}
                   placeholder={getModelPlaceholder(selectedModel)}
                   rows={2}
-                  className="w-full px-3 py-2 border border-yellow-300 bg-yellow-50 rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
+                  className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
                 />
+                <div className="flex flex-wrap gap-3">
                 <button
                   onClick={handleConvert}
                   disabled={!modelInput.trim() || isConverting}
-                  className="w-full mt-3 px-4 py-2 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-35 mt-0 px-4 py-1 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isConverting ? "Converting..." : "Convert"}
                 </button>
+                {selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA ? (
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="w-38 px-4 py-1 border border-yellow-400 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 transition-colors"
+  >                  Add Text Input
+                </button>
+                ) : null}
+                </div>
               </div>
             </div>
+          {/* Add text input popup window */}
+            {showModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md h-[70vh] overflow-hidden flex flex-col">
+      {/* Title */}
+      <h2 className="text-lg font-semibold text-yellow-600 mb-4">
+        Create Automata Input
+      </h2>
+
+      {/* Top Input Fields */}
+      <div className="space-y-3 flex-shrink-0">
+        <div>
+          <label className="block py-1 text-sm font-medium text-gray-700">
+            Initial state
+          </label>
+          <input
+            placeholder="e.g. q0"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            value={initialState}
+            onChange={(e) => setInitialState(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block py-1 text-sm font-medium text-gray-700">
+            Final state
+          </label>
+          <input
+            placeholder="e.g. qF1,qF2"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            value={finalState}
+            onChange={(e) => setFinalState(e.target.value)}
+          />
+        </div>
+        {selectedModel === MODELS.E_NFA_TO_DFA && (
+        <div>
+          <label className="block py-1 text-sm font-medium text-gray-700">
+            Alphabet
+          </label>
+          <input
+            placeholder="comma separated, e.g. a,b"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+            value={alphabet}
+            onChange={(e) => setAlphabet(e.target.value)}
+          />
+        </div>
+        )}
+      </div>
+
+      {/* Transitions Scroll Area */}
+        <label className="block py-3 text-sm font-medium text-gray-700">
+            Transitions
+          </label>
+        <div className="flex-grow mt-0 overflow-y-auto pt-1 space-y-2">
+        
+        {transitions.map((t, idx) => (
+          <div key={idx} className="flex space-x-2 items-center">
+            <input
+              placeholder="From"
+              value={t.from}
+              onChange={(e) =>
+                setTransitions((prev) =>
+                  prev.map((tran, i) =>
+                    i === idx ? { ...tran, from: e.target.value } : tran
+                  )
+                )
+              }
+              className="w-1/3 border rounded px-2 py-1 text-sm"
+            />
+            <input
+              placeholder="Input"
+              value={t.input}
+              onChange={(e) =>
+                setTransitions((prev) =>
+                  prev.map((tran, i) =>
+                    i === idx ? { ...tran, input: e.target.value } : tran
+                  )
+                )
+              }
+              className="w-1/3 border rounded px-2 py-1 text-sm"
+            />
+            <input
+              placeholder="To"
+              value={t.to}
+              onChange={(e) =>
+                setTransitions((prev) =>
+                  prev.map((tran, i) =>
+                    i === idx ? { ...tran, to: e.target.value } : tran
+                  )
+                )
+              }
+              className="w-1/3 border rounded px-2 py-1 text-sm"
+            />
+            <button
+              onClick={() =>
+                setTransitions((prev) => prev.filter((_, i) => i !== idx))
+              }
+              className="text-red-500 hover:text-red-700"
+              title="Delete Transition"
+            >
+              🗑️
+            </button>
+          </div>
+        ))}
+
+        {/* Add Transition Button */}
+       
+      </div>
+        <button
+          className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-2 py-1 transition-colors"
+          onClick={() =>
+            setTransitions((prev) => [...prev, { from: "", input: "", to: "" }])
+          }
+        >
+          <span className="text-yellow-500 mr-1">➕</span> Add Transition
+        </button>
+      {/* Footer Buttons */}
+      <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
+        <button
+          onClick={() => setShowModal(false)}
+          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => {
+            setInitialState("");
+            setFinalState("");
+            setAlphabet("");
+            setTransitions([{ from: "", input: "", to: "" }]); // leave 1 empty row
+          }}
+          className="px-4 py-2 text-sm text-red-500 border border-red-300 rounded hover:bg-red-100 transition-colors"
+        >
+          Clear All
+        </button>
+
+
+        <button
+          onClick={() => {
+             let inputText = "";
+  
+              if (selectedModel === MODELS.DFA_MINIMIZATION) {
+                const formattedTransitions = transitions
+              .filter(t => t.from && t.input && t.to)
+              .reduce((acc: Record<string, string>, t) => {
+                const key = t.from.trim();
+                const arrow = `${t.input.trim()}-->${t.to.trim()}`;
+                acc[key] = acc[key] ? `${acc[key]}, ${arrow}` : arrow;
+                return acc;
+              }, {});
+
+                
+                const transitionStr = Object.entries(formattedTransitions)
+                  .map(([state, trans]) => `${state}: ${trans}`)
+                  .join("; ");
+
+                inputText = `${transitionStr}; in:${initialState}; fi:${finalState}`;
+              } else if (selectedModel === MODELS.E_NFA_TO_DFA){
+                        const formattedFinal = finalState
+                          .split(",")
+                          .map((s) => `{${s.trim()}}`)
+                          .join("");
+                        const transitionText = transitions
+                          .filter((t) => t.from && t.input && t.to)
+                          .map((t) => `{${t.from}}->${t.input}->{${t.to}}`)
+                          .join(",");
+                        inputText = `In:{${initialState}};Fi:${formattedFinal};Abt:{${alphabet
+                          .split(",")
+                          .map((a) => a.trim())
+                          .join("}{")}};Trn:${transitionText}`;
+                        }
+                        setModelInput(inputText);
+                        setShowModal(false);
+                      }}
+          className="px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+          >
+            Generate Input
+          </button>
+      </div>
+    </div>
+  </div>
+)}
+
             
             {messages.map((message) => (
               <div
