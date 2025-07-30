@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { PDAStack, DFA_MINI_Stack, E_NFA_Stack, REGEX_Stack } from "../../utils/stacks/index"
+import { PDAGraphRenderer } from "../../utils/graph_renderer/index"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -50,6 +51,8 @@ export default function ChatPage() {
   const [convertResult, setConvertResult] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isConversionHistoryOpen, setIsConversionHistoryOpen] = useState<boolean>(false);
+  const [isSimulatingModelOpen, setIsSimulatingModelOpen] = useState<boolean>(false);
+  const [highlightCount,setHighlightCount] = useState<number>(0);
 
   // creating stack instances
 
@@ -100,7 +103,7 @@ export default function ChatPage() {
 
     try {
       // Demo API call - replace with actual API endpoint
-      const response = await fetch(`/api/convert`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -258,6 +261,26 @@ export default function ChatPage() {
     },
   ];
 
+
+  const simulationModelHandler = () => {
+    setIsSimulatingModelOpen(true)
+  }
+
+
+  const simulateBackward = () => {
+    if(highlightCount >= 1){
+      setHighlightCount(highlightCount - 1)
+    }
+  }
+
+  const simulateForward = () => {
+    setHighlightCount(highlightCount + 1);
+  }
+
+  const onClose = () => {
+    setIsSimulatingModelOpen(false)
+  }
+
   return (
     <div className="min-h-screen light-yellow-bg">
       {/* <div className="flex max-w-7xl mx-auto"> */}
@@ -321,7 +344,7 @@ export default function ChatPage() {
             )}
 
             {/* Selected Model Info */}
-            <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            {/* <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="text-sm">
                 <span className="font-medium text-yellow-700">
                   Selected Model:
@@ -333,7 +356,7 @@ export default function ChatPage() {
                   PyTorch Transformer Model
                 </span>
               </div>
-            </div>
+            </div> */}
 
             <div className="mt-9 pt-6 border-t border-gray-200">
               <h4 className="font-medium text-gray-900 mb-2 text-center">Quick Actions</h4>
@@ -343,6 +366,9 @@ export default function ChatPage() {
                 </button>
                 <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={conversionHistoryHandler}>
                   📄 View Conversion History
+                </button>
+                <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={simulationModelHandler}>
+                  Simulate
                 </button>
                 <Link
                   href="/instructions"
@@ -879,6 +905,7 @@ export default function ChatPage() {
             backgroundColor: "rgba(0, 0, 0, 0.7)", // 50% black opacity
           }}
         >
+
           <div className="bg-[#FFFFFF] w-full max-w-2xl rounded-lg p-6 shadow-xl relative">
             <button
               onClick={() => setIsConversionHistoryOpen(false)}
@@ -910,6 +937,52 @@ export default function ChatPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      }
+
+      {isSimulatingModelOpen &&
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="w-full sm:w-3/4 md:w-1/2 rounded-2xl shadow-2xl relative overflow-hidden border-t-[6px] border-[#FFD700] bg-[#FFF8DE]">
+
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-800 text-2xl font-bold"
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              <div className="mb-6">
+                <PDAGraphRenderer
+                  transitionString={`delta(q0, a, Z) -> (q0, PUSH)
+delta(q0, a, A) -> (q0, PUSH)
+delta(q0, b, A) -> (q1, POP)
+delta(q1, b, A) -> (q1, POP)
+delta(q1, ε, Z) -> (qf, NOOP)`}
+                  highlightCount={highlightCount}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between">
+                <button
+                  onClick={simulateBackward}
+                  className="px-5 py-2 rounded-lg border border-[#FFD700] text-[#8B8000] hover:bg-[#FFECB3] transition-colors"
+                >
+                  Left
+                </button>
+                <button
+                  onClick={simulateForward}
+                  className="px-5 py-2 rounded-lg bg-[#FFD700] text-white font-semibold hover:bg-yellow-500 transition-colors"
+                >
+                  Right
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       }
