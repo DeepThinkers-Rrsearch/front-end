@@ -30,35 +30,30 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white`}
       >
-        <header className="bg-white border-b border-yellow-100">
-          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
+        <header className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-b border-yellow-300 shadow-sm">
+          <nav className="w-full px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-13">
               <div className="flex items-center">
-                <Link href="/" className="text-2xl font-bold text-gray-900">
+                <Link href="/" className="text-2xl font-bold text-gray-900 pl-2 sm:pl-4">
                   State Forge
                 </Link>
               </div>
 
               <div className="hidden md:block">
-                <div className="ml-10 flex items-baseline space-x-8">
-                  <Link
-                    href="/"
-                    className="text-gray-900 hover:text-yellow-600 px-3 py-2 text-sm font-medium transition-colors"
-                  >
-                    Home
-                  </Link>
-                  <Link
-                    href="/chat"
-                    className="text-gray-900 hover:text-yellow-600 px-3 py-2 text-sm font-medium transition-colors"
-                  >
-                    Conversions
-                  </Link>
-                  <Link
-                    href="/instructions"
-                    className="text-gray-900 hover:text-yellow-600 px-3 py-2 text-sm font-medium transition-colors"
-                  >
-                    Documentation
-                  </Link>
+                 <div className="ml-10 flex items-center space-x-4">
+                  {[
+                    { href: "/", label: "Home" },
+                    { href: "/chat", label: "Conversions" },
+                    { href: "/instructions", label: "Documentation" },
+                  ].map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="px-4 py-2 text-yellow-800 rounded-lg font-medium hover:bg-yellow-200 hover:border-yellow-500 hover:text-yellow-1000 transition duration-200"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>

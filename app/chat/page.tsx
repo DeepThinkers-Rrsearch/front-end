@@ -2,16 +2,30 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import {
+  PDAStack,
+  DFA_MINI_Stack,
+  E_NFA_Stack,
+  REGEX_Stack,
+} from "../../utils/stacks/index";
+import { PDAGraphRenderer } from "../../utils/graph_renderer/index";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
+import { Eye, Plus } from "lucide-react";
+
 interface Message {
   id: string;
   content: string;
   role: "user" | "assistant";
   timestamp: Date;
 }
+
+type StackItem = {
+  string: string;
+  conversion: string;
+};
 
 // Model types
 const MODELS = {
@@ -42,6 +56,18 @@ export default function ChatPage() {
   const [isConverting, setIsConverting] = useState(false);
   const [convertResult, setConvertResult] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isConversionHistoryOpen, setIsConversionHistoryOpen] =
+    useState<boolean>(false);
+  const [isSimulatingModelOpen, setIsSimulatingModelOpen] =
+    useState<boolean>(false);
+  const [highlightCount, setHighlightCount] = useState<number>(0);
+
+  // creating stack instances
+
+  const PDA_Stack_Instance = new PDAStack();
+  const DFA_MINI_Stack_Instance = new DFA_MINI_Stack();
+  const E_NFA_Stack_Instance = new E_NFA_Stack();
+  const REGEX_Stack_Instance = new REGEX_Stack();
 
   const [showModal, setShowModal] = useState(false);
   const [initialState, setInitialState] = useState("");
@@ -51,13 +77,16 @@ export default function ChatPage() {
     { from: "", input: "", to: "" },
   ]);
 
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   useEffect(() => {
     setModelInput(""); // clear model input when model changes
@@ -105,6 +134,22 @@ export default function ChatPage() {
 
       const data = await response.json();
       setConvertResult(data.result);
+
+      switch (selectedModel) {
+        case "DFA-Minimization":
+          DFA_MINI_Stack_Instance.push(inputValue, data.result);
+          break;
+        case "Regex-to-ε-NFA":
+          REGEX_Stack_Instance.push(inputValue, data.result);
+          break;
+        case "ε-NFA-to-DFA":
+          E_NFA_Stack_Instance.push(inputValue, data.result);
+          break;
+        case "PDA":
+          PDA_Stack_Instance.push(inputValue, data.result);
+          break;
+      }
+      // add the conversion result to the
     } catch (error) {
       console.error("Conversion failed:", error);
 
@@ -197,6 +242,71 @@ export default function ChatPage() {
     }
   };
 
+  const conversionHistoryHandler = () => {
+    setIsConversionHistoryOpen(true);
+  };
+
+  const conversionHistoryExtractor = (): Array<StackItem> => {
+    switch (selectedModel) {
+      case "DFA-Minimization":
+        return DFA_MINI_Stack_Instance.getStack();
+      case "Regex-to-ε-NFA":
+        return REGEX_Stack_Instance.getStack();
+      case "ε-NFA-to-DFA":
+        return E_NFA_Stack_Instance.getStack();
+      case "PDA":
+        return PDA_Stack_Instance.getStack();
+      default:
+        return [];
+    }
+  };
+
+  const conversions = [
+    {
+      id: 1,
+      input: "aaaaaaaabbbbbbcc",
+      result: [
+        "delta(q0, a, Z) -> (q0, PUSH)",
+        "delta(q0, a, A) -> (q0, PUSH)",
+        "delta(q0, b, A) -> (q1, POP)",
+        "delta(q1, b, A) -> (q1, POP)",
+        "delta(q1, c, A) -> (q2, POP)",
+        "delta(q2, c, A) -> (q2, POP)",
+        "delta(q2, ε, Z) -> (qf, NOOP)",
+      ],
+    },
+    {
+      id: 2,
+      input: "aaaaaaaaaabbbbb",
+      result: [
+        "delta(q0, a, Z) -> (q0, PUSH)",
+        "delta(q0, a, A) -> (q1, NOOP)",
+        "delta(q1, a, A) -> (q0, PUSH)",
+        "delta(q1, b, A) -> (q2, POP)",
+        "delta(q2, b, A) -> (q2, POP)",
+        "delta(q2, ε, Z) -> (qf, NOOP)",
+      ],
+    },
+  ];
+
+  const simulationModelHandler = () => {
+    setIsSimulatingModelOpen(true);
+  };
+
+  const simulateBackward = () => {
+    if (highlightCount >= 1) {
+      setHighlightCount(highlightCount - 1);
+    }
+  };
+
+  const simulateForward = () => {
+    setHighlightCount(highlightCount + 1);
+  };
+
+  const onClose = () => {
+    setIsSimulatingModelOpen(false);
+  };
+
   return (
     <div className="min-h-screen light-yellow-bg">
       {/* <div className="flex max-w-7xl mx-auto"> */}
@@ -260,7 +370,7 @@ export default function ChatPage() {
             )}
 
             {/* Selected Model Info */}
-            <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            {/* <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="text-sm">
                 <span className="font-medium text-yellow-700">
                   Selected Model:
@@ -272,7 +382,7 @@ export default function ChatPage() {
                   PyTorch Transformer Model
                 </span>
               </div>
-            </div>
+            </div> */}
 
             <div className="mt-9 pt-6 border-t border-gray-200">
               <h4 className="font-medium text-gray-900 mb-2 text-center">
@@ -282,8 +392,17 @@ export default function ChatPage() {
                 <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]">
                   <span className="mr-1">🧹</span> Clear Chat History
                 </button>
-                <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]">
+                <button
+                  className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]"
+                  onClick={conversionHistoryHandler}
+                >
                   📄 View Conversion History
+                </button>
+                <button
+                  className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]"
+                  onClick={simulationModelHandler}
+                >
+                  Simulate
                 </button>
                 <Link
                   href="/instructions"
@@ -301,28 +420,62 @@ export default function ChatPage() {
           <div className="space-y-4 mb-24">
             {(selectedModel === MODELS.DFA_MINIMIZATION ||
               selectedModel === MODELS.E_NFA_TO_DFA) && (
-              <div className="border border-yellow-300 rounded-xl p-4 bg-white">
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  {selectedModel === MODELS.DFA_MINIMIZATION
-                    ? "Upload DFA Diagram"
-                    : "Upload ε-NFA Diagram"}
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="block w-full text-sm text-gray-700 
-                file:mr-4 
-                file:py-2 
-                file:px-4 
-                file:rounded-lg 
-                file:border 
-                file:border-gray-300 
-                file:text-sm 
-                file:font-medium 
-                file:bg-yellow-400 
-                file:text-white
-                hover:file:bg-yellow-300"
-                />
+              <div className="relative border border-yellow-300 rounded-xl p-4 bg-white">
+                <div className="flex items-center justify-between mb-1 pr-4">
+                  <label className="block text-sm font-semibold text-gray-800 mb-3">
+                    {selectedModel === MODELS.DFA_MINIMIZATION
+                      ? "Upload DFA Diagram"
+                      : "Upload ε-NFA Diagram"}
+                  </label>
+                  {uploadedImage && (
+                    <button
+                      // onClick={() => setShowPreview(!showPreview)}
+                      onMouseDown={() => setShowPreview(true)}
+                      onMouseUp={() => setShowPreview(false)}
+                      onMouseLeave={() => setShowPreview(false)} // ensures it closes if pointer leaves
+                      className="inline-flex items-center gap-1 text-sm text-yellow-600 hover:text-yellow-800"
+                      title="Preview Image"
+                    >
+                      <Eye className="w-5 h-5" />
+                      Preview
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      setUploadedImage(file || null);
+                      setShowPreview(false); // Reset preview
+                    }}
+                    className="block text-sm text-gray-700 
+                        file:mr-4 
+                        file:py-2 
+                        file:px-4 
+                        file:rounded-lg 
+                        file:border 
+                        file:border-gray-300 
+                        file:text-sm 
+                        file:font-medium 
+                        file:bg-yellow-400 
+                        file:text-white
+                        hover:file:bg-yellow-300"
+                  />
+                </div>
+
+                {/* Image Preview Popup */}
+                {showPreview && uploadedImage && (
+                  <div className="absolute top-12 right-4 z-50 p-2 border rounded-lg bg-white shadow-lg max-w-sm">
+                    <img
+                      src={URL.createObjectURL(uploadedImage)}
+                      alt="Preview"
+                      className="max-w-full max-h-[300px] rounded"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -473,18 +626,22 @@ export default function ChatPage() {
 
                     {/* Add Transition Button */}
                   </div>
-                  <button
-                    className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-2 py-1 transition-colors"
-                    onClick={() =>
-                      setTransitions((prev) => [
-                        ...prev,
-                        { from: "", input: "", to: "" },
-                      ])
-                    }
-                  >
-                    <span className="text-yellow-500 mr-1">➕</span> Add
-                    Transition
-                  </button>
+                  <div className="w-fit">
+                    <button
+                      className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-1 py-1 transition-colors"
+                      onClick={() =>
+                        setTransitions((prev) => [
+                          ...prev,
+                          { from: "", input: "", to: "" },
+                        ])
+                      }
+                    >
+                      <span className="text-yellow-500 mr-1">
+                        <Plus className="w-5 h-5" />
+                      </span>{" "}
+                      Add Transition
+                    </button>
+                  </div>
                   {/* Footer Buttons */}
                   <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
                     <button
@@ -553,56 +710,64 @@ export default function ChatPage() {
                 </div>
               </div>
             )}
-
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${
-                    // ← UPDATE THIS LINE
-                    message.role === "user" ? "flex-row-reverse" : "flex-row"
-                  } items-start space-x-3`}
-                >
-                  {/* Avatar section stays the same */}
+            {/* Messaging interface */}
+            <div className="flex flex-col">
+              <div className="h-[250px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
+                {messages.map((message) => (
                   <div
-                    className={`flex-shrink-0 ${
-                      message.role === "user" ? "ml-3" : "mr-3"
+                    key={message.id}
+                    className={`flex ${
+                      message.role === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
-                    {message.role === "assistant" ? (
-                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">SF</span>
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">U</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
-                  <div
-                    className={`rounded-2xl px-4 py-3 ${
-                      // ← REMOVE max-w-xs lg:max-w-md from here
-                      message.role === "user"
-                        ? "chat-bubble-user"
-                        : "chat-bubble-ai"
-                    }`}
-                  >
-                    {/* REPLACE the existing content section with: */}
-                    <div className="overflow-hidden">
+                    <div
+                      className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${
+                        // ← UPDATE THIS LINE
+                        message.role === "user"
+                          ? "flex-row-reverse"
+                          : "flex-row"
+                      } items-start space-x-3`}
+                    >
+                      {/* Avatar section stays the same */}
                       <div
-                        className={`prose prose-sm max-w-none break-words leading-relaxed ${
-                          message.role === "user"
-                            ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
-                            : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
-                        } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                        className={`flex-shrink-0 ${
+                          message.role === "user" ? "ml-3" : "mr-3"
+                        }`}
                       >
-                        {/* <ReactMarkdown
+                        {message.role === "assistant" ? (
+                          <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">
+                              SF
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-xs">
+                              U
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
+                      <div
+                        className={`rounded-2xl px-4 py-3 ${
+                          // ← REMOVE max-w-xs lg:max-w-md from here
+                          message.role === "user"
+                            ? "chat-bubble-user"
+                            : "chat-bubble-ai"
+                        }`}
+                      >
+                        {/* REPLACE the existing content section with: */}
+                        <div className="overflow-hidden">
+                          <div
+                            className={`prose prose-sm max-w-none break-words leading-relaxed ${
+                              message.role === "user"
+                                ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                                : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                            } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                          >
+                            {/* <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeHighlight]}
                         components={{
@@ -642,143 +807,144 @@ export default function ChatPage() {
                       >
                         {message.content ?? ""}
                       </ReactMarkdown> */}
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeHighlight]}
-                          components={{
-                            pre: (props: any) => (
-                              <div className="relative my-4">
-                                <pre
-                                  className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${
-                                    message.role === "user"
-                                      ? "bg-yellow-800 text-yellow-100 border-yellow-600"
-                                      : "bg-yellow-100 text-yellow-100 border-yellow-100"
-                                  }`}
-                                  style={{
-                                    fontFamily:
-                                      'Consolas, Monaco, "Courier New", monospace',
-                                  }}
-                                >
-                                  {props.children}
-                                </pre>
-                                <button
-                                  className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
-                                  onClick={() => {
-                                    // Extract text content for copying
-                                    const extractText = (
-                                      element: any
-                                    ): string => {
-                                      if (typeof element === "string")
-                                        return element;
-                                      if (Array.isArray(element))
-                                        return element
-                                          .map(extractText)
-                                          .join("");
-                                      if (element?.props?.children)
-                                        return extractText(
-                                          element.props.children
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              rehypePlugins={[rehypeHighlight]}
+                              components={{
+                                pre: (props: any) => (
+                                  <div className="relative my-4">
+                                    <pre
+                                      className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${
+                                        message.role === "user"
+                                          ? "bg-yellow-800 text-yellow-100 border-yellow-600"
+                                          : "bg-yellow-100 text-yellow-100 border-yellow-100"
+                                      }`}
+                                      style={{
+                                        fontFamily:
+                                          'Consolas, Monaco, "Courier New", monospace',
+                                      }}
+                                    >
+                                      {props.children}
+                                    </pre>
+                                    <button
+                                      className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                                      onClick={() => {
+                                        // Extract text content for copying
+                                        const extractText = (
+                                          element: any
+                                        ): string => {
+                                          if (typeof element === "string")
+                                            return element;
+                                          if (Array.isArray(element))
+                                            return element
+                                              .map(extractText)
+                                              .join("");
+                                          if (element?.props?.children)
+                                            return extractText(
+                                              element.props.children
+                                            );
+                                          return "";
+                                        };
+                                        const codeText = extractText(
+                                          props.children
                                         );
-                                      return "";
-                                    };
-                                    const codeText = extractText(
-                                      props.children
-                                    );
-                                    navigator.clipboard.writeText(codeText);
-                                  }}
-                                >
-                                  Copy
-                                </button>
-                              </div>
-                            ),
-                            code: (props: any) => {
-                              const isInline =
-                                !props.className ||
-                                !props.className.includes("language-");
+                                        navigator.clipboard.writeText(codeText);
+                                      }}
+                                    >
+                                      Copy
+                                    </button>
+                                  </div>
+                                ),
+                                code: (props: any) => {
+                                  const isInline =
+                                    !props.className ||
+                                    !props.className.includes("language-");
 
-                              if (isInline) {
-                                return (
-                                  <code
-                                    className={`px-1.5 py-0.5 rounded text-xs font-mono ${
-                                      message.role === "user"
-                                        ? "bg-yellow-200 text-yellow-900"
-                                        : "bg-gray-200 text-gray-800"
-                                    }`}
-                                  >
-                                    {props.children}
-                                  </code>
-                                );
-                              } else {
-                                return (
-                                  <code
-                                    className={`block whitespace-pre-wrap ${
-                                      props.className || ""
-                                    }`}
-                                    style={{
-                                      fontFamily:
-                                        'Consolas, Monaco, "Courier New", monospace',
-                                    }}
-                                  >
-                                    {props.children}
-                                  </code>
-                                );
-                              }
-                            },
-                          }}
+                                  if (isInline) {
+                                    return (
+                                      <code
+                                        className={`px-1.5 py-0.5 rounded text-xs font-mono ${
+                                          message.role === "user"
+                                            ? "bg-yellow-200 text-yellow-900"
+                                            : "bg-gray-200 text-gray-800"
+                                        }`}
+                                      >
+                                        {props.children}
+                                      </code>
+                                    );
+                                  } else {
+                                    return (
+                                      <code
+                                        className={`block whitespace-pre-wrap ${
+                                          props.className || ""
+                                        }`}
+                                        style={{
+                                          fontFamily:
+                                            'Consolas, Monaco, "Courier New", monospace',
+                                        }}
+                                      >
+                                        {props.children}
+                                      </code>
+                                    );
+                                  }
+                                },
+                              }}
+                            >
+                              {message.content ?? ""}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+
+                        {/* Timestamp stays the same */}
+                        <p
+                          className={`text-xs mt-1 ${
+                            message.role === "user"
+                              ? "text-yellow-100"
+                              : "text-gray-500"
+                          }`}
                         >
-                          {message.content ?? ""}
-                        </ReactMarkdown>
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
                       </div>
                     </div>
-
-                    {/* Timestamp stays the same */}
-                    <p
-                      className={`text-xs mt-1 ${
-                        message.role === "user"
-                          ? "text-yellow-100"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      {message.timestamp.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))}
 
-            {/* Loading Message */}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">SF</span>
-                  </div>
-                  <div className="chat-bubble-ai rounded-2xl px-4 py-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
+                {/* Loading Message */}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">SF</span>
+                      </div>
+                      <div className="chat-bubble-ai rounded-2xl px-4 py-3">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.1s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
       {/* Chat Input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-yellow-200">
+      <div className="fixed bottom-0 left-80 right-0 bg-white border-t border-yellow-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <form onSubmit={handleSubmit} className="flex space-x-4">
             <div className="flex-1 relative">
@@ -845,6 +1011,103 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+
+      {/* Conversion History Model */}
+      {isConversionHistoryOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.7)", // 50% black opacity
+          }}
+        >
+          <div className="bg-[#FFFFFF] w-full max-w-2xl rounded-lg p-6 shadow-xl relative">
+            <button
+              onClick={() => setIsConversionHistoryOpen(false)}
+              className="absolute top-3 right-4 text-xl font-bold text-gray-600 hover:text-black"
+            >
+              &times;
+            </button>
+            <h1 className="text-2xl font-semibold mb-4">Conversion History</h1>
+            {conversions?.map((conversion, key) => (
+              <div
+                key={key + 1}
+                className="mb-6 border border-gray-300 rounded-lg bg-[#FFF8DE] p-4 shadow"
+              >
+                <h2 className="text-lg font-medium mb-2">
+                  🔢 Conversion {key + 1}
+                </h2>
+                <p className="mb-2">
+                  <span className="font-semibold">
+                    Context-Free Input String:{" "}
+                  </span>
+                  <span className="bg-green-100 px-2 py-1 rounded text-sm font-mono">
+                    {conversion.input}
+                  </span>
+                </p>
+                <p className="font-semibold mb-1">Conversion Result:</p>
+                <div className="bg-white p-3 rounded-md text-sm font-mono whitespace-pre-wrap">
+                  {/* {conversion.conversion?.map((line, idx) => (
+                    <div key={idx} className="mb-1">
+                      {line}
+                    </div>
+                  ))} */}
+                  {conversion?.result}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isSimulatingModelOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="w-full sm:w-3/4 md:w-1/2 rounded-2xl shadow-2xl relative overflow-hidden border-t-[6px] border-[#FFD700] bg-[#FFF8DE]">
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-800 text-2xl font-bold"
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              <div className="mb-6">
+                <PDAGraphRenderer
+                  transitionString={`delta(q0, a, Z) -> (q0, PUSH)
+delta(q0, a, A) -> (q0, PUSH)
+delta(q0, b, A) -> (q1, POP)
+delta(q1, b, A) -> (q1, POP)
+delta(q1, ε, Z) -> (qf, NOOP)`}
+                  highlightCount={highlightCount}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between">
+                <button
+                  onClick={simulateBackward}
+                  className="px-5 py-2 rounded-lg border border-[#FFD700] text-[#8B8000] hover:bg-[#FFECB3] transition-colors"
+                >
+                  Left
+                </button>
+                <button
+                  onClick={simulateForward}
+                  className="px-5 py-2 rounded-lg bg-[#FFD700] text-white font-semibold hover:bg-yellow-500 transition-colors"
+                >
+                  Right
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
