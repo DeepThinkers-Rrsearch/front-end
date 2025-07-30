@@ -532,12 +532,12 @@ export default function ChatPage() {
           >
             Generate Input
           </button>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-)}
-
-            
+    )}
+            <div className="flex flex-col">
+            <div className="h-[360px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
             {messages.map((message) => (
             <div
               key={message.id}
@@ -741,9 +741,10 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
-
+    </div>
+    </div>
       {/* Chat Input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-yellow-200">
+      <div className="fixed bottom-0 left-80 right-0 bg-white border-t border-yellow-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <form onSubmit={handleSubmit} className="flex space-x-4">
             <div className="flex-1 relative">
