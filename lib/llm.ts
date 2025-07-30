@@ -8,35 +8,15 @@ import {
   MemorySaver,
 } from "@langchain/langgraph";
 import { v4 as uuidv4 } from "uuid";
-
-import { 
+import { appState } from "./store";
+import {
   regex_to_e_nfa_prompt_template,
-  e_nfa_to_dfa_prompt_template, 
-  dfa_to_minimized_dfa_prompt_template, 
-  push_down_automata_prompt_template 
+  e_nfa_to_dfa_prompt_template,
+  dfa_to_minimized_dfa_prompt_template,
+  push_down_automata_prompt_template,
 } from "./prompt_templates/prompts";
 
-// Define the interface for the application state
-interface AppState {
-  regex_to_e_nfa_used?: boolean;
-  e_nfa_to_dfa_used?: boolean;
-  dfa_to_minimized_dfa_used?: boolean;
-  pda_used?: boolean;
-  is_pressed_convert?: boolean;
-  latest_input_regex?: string;
-  latest_input_e_nfa?: string;
-  latest_input_dfa?: string;
-  latest_input_pda?: string;
-  regex_to_e_nfa_transition?: string;
-  e_nfa_to_dfa_transition?: string;
-  dfa_to_minimized_dfa_transition?: string;
-  pda_transition?: string;
-  selected_model?: {
-    name: string;
-  };
-}
-
-export const setup_llm = (appState: AppState) => {
+export const setup_llm = () => {
   const llm = new ChatGoogleGenerativeAI({
     model: "gemini-2.0-flash",
     temperature: 0,
@@ -54,29 +34,37 @@ export const setup_llm = (appState: AppState) => {
     let regex_to_e_nfa_hint = "";
     if (!appState.regex_to_e_nfa_used && appState.is_pressed_convert) {
       appState.regex_to_e_nfa_used = true;
-      regex_to_e_nfa_hint = `\nHere is the converted ε-NFA transition for the regular expression ${appState.latest_input_regex || ''}:\n${appState.regex_to_e_nfa_transition || ''}`;
+      regex_to_e_nfa_hint = `\nHere is the converted ε-NFA transition for the regular expression ${
+        appState.latest_input_regex || ""
+      }:\n${appState.regex_to_e_nfa_transition || ""}`;
     }
 
-    // Handle ε-NFA to DFA hint
-    let e_nfa_to_dfa_hint = "";
-    if (!appState.e_nfa_to_dfa_used && appState.is_pressed_convert) {
-      appState.e_nfa_to_dfa_used = true;
-      e_nfa_to_dfa_hint = `\nHere is the converted DFA transition for the e-NFA ${appState.latest_input_e_nfa || ''}:\n${appState.e_nfa_to_dfa_transition || ''}`;
-    }
+    // // Handle ε-NFA to DFA hint
+    // let e_nfa_to_dfa_hint = "";
+    // if (!appState.e_nfa_to_dfa_used && appState.is_pressed_convert) {
+    //   appState.e_nfa_to_dfa_used = true;
+    //   e_nfa_to_dfa_hint = `\nHere is the converted DFA transition for the e-NFA ${
+    //     appState.latest_input_e_nfa || ""
+    //   }:\n${appState.e_nfa_to_dfa_transition || ""}`;
+    // }
 
     // Handle DFA to minimized DFA hint
-    let dfa_to_minimized_dfa_hint = "";
-    if (!appState.dfa_to_minimized_dfa_used && appState.is_pressed_convert) {
-      appState.dfa_to_minimized_dfa_used = true;
-      dfa_to_minimized_dfa_hint = `\nHere is the minimized DFA transition for the given DFA ${appState.latest_input_dfa || ''}:\n${appState.dfa_to_minimized_dfa_transition || ''}`;
-    }
+    // let dfa_to_minimized_dfa_hint = "";
+    // if (!appState.dfa_to_minimized_dfa_used && appState.is_pressed_convert) {
+    //   appState.dfa_to_minimized_dfa_used = true;
+    //   dfa_to_minimized_dfa_hint = `\nHere is the minimized DFA transition for the given DFA ${
+    //     appState.latest_input_dfa || ""
+    //   }:\n${appState.dfa_to_minimized_dfa_transition || ""}`;
+    // }
 
     // Handle PDA hint
-    let push_down_automata_hint = "";
-    if (!appState.pda_used && appState.is_pressed_convert) {
-      appState.pda_used = true;
-      push_down_automata_hint = `\nHere is the converted pda transitions for the given context free language string ${appState.latest_input_pda || ''}:\n${appState.pda_transition || ''}`;
-    }
+    // let push_down_automata_hint = "";
+    // if (!appState.pda_used && appState.is_pressed_convert) {
+    //   appState.pda_used = true;
+    //   push_down_automata_hint = `\nHere is the converted pda transitions for the given context free language string ${
+    //     appState.latest_input_pda || ""
+    //   }:\n${appState.pda_transition || ""}`;
+    // }
 
     const selected_model = appState.selected_model;
     let prompt;
@@ -114,7 +102,6 @@ export const setup_llm = (appState: AppState) => {
 
     return { messages: response };
   };
-
 
   // Define a new graph
   const workflow = new StateGraph(MessagesAnnotation)
