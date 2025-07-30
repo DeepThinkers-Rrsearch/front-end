@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, JSX } from "react";
 import Link from "next/link";
 import { PDAStack, DFA_MINI_Stack, E_NFA_Stack, REGEX_Stack } from "../../utils/stacks/index"
 import { PDAGraphRenderer } from "../../utils/graph_renderer/index"
@@ -53,7 +53,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isConversionHistoryOpen, setIsConversionHistoryOpen] = useState<boolean>(false);
   const [isSimulatingModelOpen, setIsSimulatingModelOpen] = useState<boolean>(false);
-  const [highlightCount,setHighlightCount] = useState<number>(0);
+  const [highlightCount, setHighlightCount] = useState<number>(0);
 
   // creating stack instances
 
@@ -267,18 +267,44 @@ export default function ChatPage() {
 
 
   const simulationModelHandler = () => {
+
     setIsSimulatingModelOpen(true)
+  }
+
+  const graphRenderHandler = (): JSX.Element => {
+    switch (selectedModel) {
+      case "DFA-Minimization":
+        return <></>
+      case "Regex-to-ε-NFA":
+        return <></>
+      case "ε-NFA-to-DFA":
+        return <></>
+      case "PDA":
+        return (
+          <PDAGraphRenderer
+            transitionString={convertResult}
+            highlightCount={highlightCount}
+          />
+        );
+      default:
+        return <></>
+    }
   }
 
 
   const simulateBackward = () => {
-    if(highlightCount >= 1){
+    if (highlightCount >= 1) {
       setHighlightCount(highlightCount - 1)
     }
   }
 
   const simulateForward = () => {
-    setHighlightCount(highlightCount + 1);
+    const count = convertResult
+      .split('\n')
+      .filter(line => line.trim() !== '').length;
+    if (count > highlightCount) {
+      setHighlightCount(highlightCount + 1);
+    }
   }
 
   const onClose = () => {
@@ -372,7 +398,7 @@ export default function ChatPage() {
                   📄 View Conversion History
                 </button>
                 <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={simulationModelHandler}>
-                  Simulate
+                  ▶️ Simulate
                 </button>
                 <Link
                   href="/instructions"
@@ -389,39 +415,39 @@ export default function ChatPage() {
         {/* Main Chat Area */}
         <div className="flex-1 px-4 py-6">
           <div className="space-y-4 mb-24">
-                {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
-                    <div className="relative border border-yellow-300 rounded-xl p-4 bg-white">
-                      <div className="flex items-center justify-between mb-1 pr-4">
-                      <label className="block text-sm font-semibold text-gray-800 mb-3">
-                        {selectedModel === MODELS.DFA_MINIMIZATION
-                          ? "Upload DFA Diagram"
-                          : "Upload ε-NFA Diagram"}
-                      </label>
-                      {uploadedImage && (
-                      <button
-                        // onClick={() => setShowPreview(!showPreview)}
-                        onMouseDown={() => setShowPreview(true)}
+            {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
+              <div className="relative border border-yellow-300 rounded-xl p-4 bg-white">
+                <div className="flex items-center justify-between mb-1 pr-4">
+                  <label className="block text-sm font-semibold text-gray-800 mb-3">
+                    {selectedModel === MODELS.DFA_MINIMIZATION
+                      ? "Upload DFA Diagram"
+                      : "Upload ε-NFA Diagram"}
+                  </label>
+                  {uploadedImage && (
+                    <button
+                      // onClick={() => setShowPreview(!showPreview)}
+                      onMouseDown={() => setShowPreview(true)}
                       onMouseUp={() => setShowPreview(false)}
                       onMouseLeave={() => setShowPreview(false)} // ensures it closes if pointer leaves
-                        className="inline-flex items-center gap-1 text-sm text-yellow-600 hover:text-yellow-800"
-                        title="Preview Image"
-                      >
-                        <Eye className="w-5 h-5" />
-                        Preview
-                      </button>
-                    )}
-                    </div>
+                      className="inline-flex items-center gap-1 text-sm text-yellow-600 hover:text-yellow-800"
+                      title="Preview Image"
+                    >
+                      <Eye className="w-5 h-5" />
+                      Preview
+                    </button>
+                  )}
+                </div>
 
-                  <div className="flex flex-col gap-2">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        setUploadedImage(file || null);
-                        setShowPreview(false); // Reset preview
-                      }}
-                      className="block text-sm text-gray-700 
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      setUploadedImage(file || null);
+                      setShowPreview(false); // Reset preview
+                    }}
+                    className="block text-sm text-gray-700 
                         file:mr-4 
                         file:py-2 
                         file:px-4 
@@ -433,21 +459,21 @@ export default function ChatPage() {
                         file:bg-yellow-400 
                         file:text-white
                         hover:file:bg-yellow-300"
-                    />
-                  </div>
-
-                  {/* Image Preview Popup */}
-                {showPreview && uploadedImage && (
-                <div className="absolute top-12 right-4 z-50 p-2 border rounded-lg bg-white shadow-lg max-w-sm">
-                  <img
-                    src={URL.createObjectURL(uploadedImage)}
-                    alt="Preview"
-                    className="max-w-full max-h-[300px] rounded"
                   />
                 </div>
-              )}
-                </div>
-              )}
+
+                {/* Image Preview Popup */}
+                {showPreview && uploadedImage && (
+                  <div className="absolute top-12 right-4 z-50 p-2 border rounded-lg bg-white shadow-lg max-w-sm">
+                    <img
+                      src={URL.createObjectURL(uploadedImage)}
+                      alt="Preview"
+                      className="max-w-full max-h-[300px] rounded"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Model Text Input Field */}
             <div className="space-y-4">
@@ -656,14 +682,14 @@ export default function ChatPage() {
                         setModelInput(inputText);
                         setShowModal(false);
                       }}
-          className="px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
-          >
-            Generate Input
-          </button>
-          </div>
-        </div>
-      </div>
-    )}
+                      className="px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+                    >
+                      Generate Input
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {/* Messaging interface */}
             <div className="flex flex-col">
             <div className="h-[250px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
@@ -694,23 +720,23 @@ export default function ChatPage() {
                     )}
                   </div>
 
-                  {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
-                  <div
-                    className={`rounded-2xl px-4 py-3 ${  // ← REMOVE max-w-xs lg:max-w-md from here
-                      message.role === "user"
-                        ? "chat-bubble-user"
-                        : "chat-bubble-ai"
-                      }`}
-                  >
-                    {/* REPLACE the existing content section with: */}
-                    <div className="overflow-hidden">
+                      {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
                       <div
-                        className={`prose prose-sm max-w-none break-words leading-relaxed ${message.role === "user"
-                          ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
-                          : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
-                          } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                        className={`rounded-2xl px-4 py-3 ${  // ← REMOVE max-w-xs lg:max-w-md from here
+                          message.role === "user"
+                            ? "chat-bubble-user"
+                            : "chat-bubble-ai"
+                          }`}
                       >
-                        {/* <ReactMarkdown
+                        {/* REPLACE the existing content section with: */}
+                        <div className="overflow-hidden">
+                          <div
+                            className={`prose prose-sm max-w-none break-words leading-relaxed ${message.role === "user"
+                              ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                              : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                              } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                          >
+                            {/* <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeHighlight]}
                         components={{
@@ -750,122 +776,122 @@ export default function ChatPage() {
                       >
                         {message.content ?? ""}
                       </ReactMarkdown> */}
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeHighlight]}
-                          components={{
-                            pre: (props: any) => (
-                              <div className="relative my-4">
-                                <pre
-                                  className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${message.role === "user"
-                                    ? "bg-yellow-800 text-yellow-100 border-yellow-600"
-                                    : "bg-yellow-100 text-yellow-100 border-yellow-100"
-                                    }`}
-                                  style={{
-                                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                                  }}
-                                >
-                                  {props.children}
-                                </pre>
-                                <button
-                                  className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
-                                  onClick={() => {
-                                    // Extract text content for copying
-                                    const extractText = (element: any): string => {
-                                      if (typeof element === 'string') return element;
-                                      if (Array.isArray(element)) return element.map(extractText).join('');
-                                      if (element?.props?.children) return extractText(element.props.children);
-                                      return '';
-                                    };
-                                    const codeText = extractText(props.children);
-                                    navigator.clipboard.writeText(codeText);
-                                  }}
-                                >
-                                  Copy
-                                </button>
-                              </div>
-                            ),
-                            code: (props: any) => {
-                              const isInline = !props.className || !props.className.includes('language-');
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              rehypePlugins={[rehypeHighlight]}
+                              components={{
+                                pre: (props: any) => (
+                                  <div className="relative my-4">
+                                    <pre
+                                      className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${message.role === "user"
+                                        ? "bg-yellow-800 text-yellow-100 border-yellow-600"
+                                        : "bg-yellow-100 text-yellow-100 border-yellow-100"
+                                        }`}
+                                      style={{
+                                        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                      }}
+                                    >
+                                      {props.children}
+                                    </pre>
+                                    <button
+                                      className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                                      onClick={() => {
+                                        // Extract text content for copying
+                                        const extractText = (element: any): string => {
+                                          if (typeof element === 'string') return element;
+                                          if (Array.isArray(element)) return element.map(extractText).join('');
+                                          if (element?.props?.children) return extractText(element.props.children);
+                                          return '';
+                                        };
+                                        const codeText = extractText(props.children);
+                                        navigator.clipboard.writeText(codeText);
+                                      }}
+                                    >
+                                      Copy
+                                    </button>
+                                  </div>
+                                ),
+                                code: (props: any) => {
+                                  const isInline = !props.className || !props.className.includes('language-');
 
-                              if (isInline) {
-                                return (
-                                  <code
-                                    className={`px-1.5 py-0.5 rounded text-xs font-mono ${message.role === "user"
-                                      ? "bg-yellow-200 text-yellow-900"
-                                      : "bg-gray-200 text-gray-800"
-                                      }`}
-                                  >
-                                    {props.children}
-                                  </code>
-                                );
-                              } else {
-                                return (
-                                  <code
-                                    className={`block whitespace-pre-wrap ${props.className || ''}`}
-                                    style={{
-                                      fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                                    }}
-                                  >
-                                    {props.children}
-                                  </code>
-                                );
-                              }
-                            }
-                          }}
+                                  if (isInline) {
+                                    return (
+                                      <code
+                                        className={`px-1.5 py-0.5 rounded text-xs font-mono ${message.role === "user"
+                                          ? "bg-yellow-200 text-yellow-900"
+                                          : "bg-gray-200 text-gray-800"
+                                          }`}
+                                      >
+                                        {props.children}
+                                      </code>
+                                    );
+                                  } else {
+                                    return (
+                                      <code
+                                        className={`block whitespace-pre-wrap ${props.className || ''}`}
+                                        style={{
+                                          fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                        }}
+                                      >
+                                        {props.children}
+                                      </code>
+                                    );
+                                  }
+                                }
+                              }}
+                            >
+                              {message.content ?? ""}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+
+                        {/* Timestamp stays the same */}
+                        <p
+                          className={`text-xs mt-1 ${message.role === "user"
+                            ? "text-yellow-100"
+                            : "text-gray-500"
+                            }`}
                         >
-                          {message.content ?? ""}
-                        </ReactMarkdown>
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
                       </div>
                     </div>
-
-                    {/* Timestamp stays the same */}
-                    <p
-                      className={`text-xs mt-1 ${message.role === "user"
-                        ? "text-yellow-100"
-                        : "text-gray-500"
-                        }`}
-                    >
-                      {message.timestamp.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))}
 
-            {/* Loading Message */}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-xs">SF</span>
-                  </div>
-                  <div className="chat-bubble-ai rounded-2xl px-4 py-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
+                {/* Loading Message */}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">SF</span>
+                      </div>
+                      <div className="chat-bubble-ai rounded-2xl px-4 py-3">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.1s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            <div ref={messagesEndRef} />
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    </div>
       {/* Chat Input */}
       <div className="fixed bottom-0 left-80 right-0 bg-white border-t border-yellow-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -999,17 +1025,28 @@ export default function ChatPage() {
 
             {/* Modal Content */}
             <div className="p-6">
-              <div className="mb-6">
-                <PDAGraphRenderer
-                  transitionString={`delta(q0, a, Z) -> (q0, PUSH)
-delta(q0, a, A) -> (q0, PUSH)
-delta(q0, b, A) -> (q1, POP)
-delta(q1, b, A) -> (q1, POP)
-delta(q1, ε, Z) -> (qf, NOOP)`}
-                  highlightCount={highlightCount}
-                />
+              <div>
+                <h1 className="text-2xl font-bold text-[#FFD700] mb-2 tracking-wide">{`${selectedModel} Simulating...`}</h1>
               </div>
-
+              <br />
+              <div className="mb-6">
+                {convertResult != "" ? graphRenderHandler() : <p>Please perform an automata process first!!!</p>}
+              </div>
+              <div>
+                <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">Input Value: </p>
+                {selectedModel == "PDA" ? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                  {modelInput}
+                  {/* {modelInput.split('').map((char, index) => (
+                    <span
+                      key={index}
+                      style={{ color: index < highlightCount ? '#FFD700' : '#000' }}
+                    >
+                      {char}
+                    </span>
+                  ))} */}
+                </p> : null}
+              </div>
+              <br />
               {/* Action Buttons */}
               <div className="flex justify-between">
                 <button
