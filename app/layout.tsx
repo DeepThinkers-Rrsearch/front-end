@@ -30,9 +30,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white`}
       >
-        <header className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-b border-yellow-50 shadow-sm">
+        <header className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-b border-yellow-300 shadow-sm">
           <nav className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
+            <div className="flex justify-between items-center h-13">
               <div className="flex items-center">
                 <Link href="/" className="text-2xl font-bold text-gray-900 pl-2 sm:pl-4">
                   State Forge

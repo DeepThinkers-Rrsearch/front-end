@@ -75,9 +75,9 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   useEffect(() => {
     setModelInput(""); // clear model input when model changes
@@ -666,7 +666,7 @@ export default function ChatPage() {
     )}
             {/* Messaging interface */}
             <div className="flex flex-col">
-            <div className="h-[360px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
+            <div className="h-[250px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
             {messages.map((message) => (
               <div
                 key={message.id}
