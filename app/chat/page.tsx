@@ -511,7 +511,7 @@ export default function ChatPage() {
             {/* Add text input popup window */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md h-[70vh] overflow-hidden flex flex-col">
+                <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md h-[80vh] overflow-hidden flex flex-col">
                   {/* Title */}
                   <h2 className="text-lg font-semibold text-yellow-600 mb-4">
                     Create Automata Input
