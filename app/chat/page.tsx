@@ -6,7 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Eye } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 
 interface Message {
   id: string;
@@ -500,14 +500,17 @@ export default function ChatPage() {
         {/* Add Transition Button */}
        
       </div>
+      <div className="w-fit">
         <button
-          className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-2 py-1 transition-colors"
+          className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-1 py-1 transition-colors"
           onClick={() =>
             setTransitions((prev) => [...prev, { from: "", input: "", to: "" }])
           }
         >
-          <span className="text-yellow-500 mr-1">➕</span> Add Transition
+          <span className="text-yellow-500 mr-1"><Plus className="w-5 h-5" />
+          </span> Add Transition
         </button>
+        </div>
       {/* Footer Buttons */}
       <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
         <button

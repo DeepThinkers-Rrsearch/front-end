@@ -11,7 +11,7 @@ export default function HomePage() {
             {/* Left Column - Text Content */}
             <div className="text-left">
               <div className="mb-8">
-                <span className="text-6xl font-bold text-yellow-400 opacity-30 absolute top-20 left-4 z-0">
+                <span className="text-6xl font-bold text-yellow-800 opacity-70 absolute top-20 z-0">
                   STATE FORGE
                 </span>
               </div>
