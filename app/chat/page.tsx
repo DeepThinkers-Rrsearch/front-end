@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Eye } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 
 interface Message {
   id: string;
@@ -75,9 +75,9 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   useEffect(() => {
     setModelInput(""); // clear model input when model changes
@@ -610,36 +610,39 @@ export default function ChatPage() {
                       </div>
                     ))}
 
-                    {/* Add Transition Button */}
-
-                  </div>
-                  <button
-                    className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-2 py-1 transition-colors"
-                    onClick={() =>
-                      setTransitions((prev) => [...prev, { from: "", input: "", to: "" }])
-                    }
-                  >
-                    <span className="text-yellow-500 mr-1">➕</span> Add Transition
-                  </button>
-                  {/* Footer Buttons */}
-                  <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
-                    <button
-                      onClick={() => setShowModal(false)}
-                      className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        setInitialState("");
-                        setFinalState("");
-                        setAlphabet("");
-                        setTransitions([{ from: "", input: "", to: "" }]); // leave 1 empty row
-                      }}
-                      className="px-4 py-2 text-sm text-red-500 border border-red-300 rounded hover:bg-red-100 transition-colors"
-                    >
-                      Clear All
-                    </button>
+        {/* Add Transition Button */}
+       
+      </div>
+      <div className="w-fit">
+        <button
+          className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-1 py-1 transition-colors"
+          onClick={() =>
+            setTransitions((prev) => [...prev, { from: "", input: "", to: "" }])
+          }
+        >
+          <span className="text-yellow-500 mr-1"><Plus className="w-5 h-5" />
+          </span> Add Transition
+        </button>
+        </div>
+      {/* Footer Buttons */}
+      <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
+        <button
+          onClick={() => setShowModal(false)}
+          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => {
+            setInitialState("");
+            setFinalState("");
+            setAlphabet("");
+            setTransitions([{ from: "", input: "", to: "" }]); // leave 1 empty row
+          }}
+          className="px-4 py-2 text-sm text-red-500 border border-red-300 rounded hover:bg-red-100 transition-colors"
+        >
+          Clear All
+        </button>
 
 
                     <button
@@ -689,33 +692,33 @@ export default function ChatPage() {
             )}
             {/* Messaging interface */}
             <div className="flex flex-col">
-              <div className="h-[360px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
-                {messages.map((message) => (
+            <div className="h-[250px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+              >
+                <div
+                  className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${  // ← UPDATE THIS LINE
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                    } items-start space-x-3`}
+                >
+                  {/* Avatar section stays the same */}
                   <div
-                    key={message.id}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                    className={`flex-shrink-0 ${message.role === "user" ? "ml-3" : "mr-3"
                       }`}
                   >
-                    <div
-                      className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${  // ← UPDATE THIS LINE
-                        message.role === "user" ? "flex-row-reverse" : "flex-row"
-                        } items-start space-x-3`}
-                    >
-                      {/* Avatar section stays the same */}
-                      <div
-                        className={`flex-shrink-0 ${message.role === "user" ? "ml-3" : "mr-3"
-                          }`}
-                      >
-                        {message.role === "assistant" ? (
-                          <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">SF</span>
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">U</span>
-                          </div>
-                        )}
+                    {message.role === "assistant" ? (
+                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">SF</span>
                       </div>
+                    ) : (
+                      <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">U</span>
+                      </div>
+                    )}
+                  </div>
 
                       {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
                       <div
