@@ -568,7 +568,7 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="mt-8 pt-8 border-t border-gray-800 text-gray-500 text-sm">
-              © 2024 State Forge Research Team. All rights reserved.
+              © 2025 Deep Thinkers Research Team. All rights reserved.
             </div>
           </div>
         </div>
