@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import {PDAStack,DFA_MINI_Stack,E_NFA_Stack,REGEX_Stack} from "../../utils/stacks/index"
+import { PDAStack, DFA_MINI_Stack, E_NFA_Stack, REGEX_Stack } from "../../utils/stacks/index"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -13,6 +13,11 @@ interface Message {
   content: string;
   role: "user" | "assistant";
   timestamp: Date;
+}
+
+type StackItem = {
+  string: string
+  conversion: string
 }
 
 // Model types
@@ -44,6 +49,7 @@ export default function ChatPage() {
   const [isConverting, setIsConverting] = useState(false);
   const [convertResult, setConvertResult] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isConversionHistoryOpen, setIsConversionHistoryOpen] = useState<boolean>(false);
 
   // creating stack instances
 
@@ -67,7 +73,7 @@ export default function ChatPage() {
   }, [messages]);
 
   useEffect(() => {
-  setModelInput(""); // clear model input when model changes
+    setModelInput(""); // clear model input when model changes
   }, [selectedModel]);
 
 
@@ -111,20 +117,19 @@ export default function ChatPage() {
 
       const data = await response.json();
       setConvertResult(data.result);
-      
-      switch(selectedModel)
-      {
+
+      switch (selectedModel) {
         case "DFA-Minimization":
-          DFA_MINI_Stack_Instance.push(inputValue,data.result)
+          DFA_MINI_Stack_Instance.push(inputValue, data.result)
           break;
         case "Regex-to-ε-NFA":
-          REGEX_Stack_Instance.push(inputValue,data.result)
+          REGEX_Stack_Instance.push(inputValue, data.result)
           break;
         case "ε-NFA-to-DFA":
-          E_NFA_Stack_Instance.push(inputValue,data.result)
+          E_NFA_Stack_Instance.push(inputValue, data.result)
           break;
         case "PDA":
-          PDA_Stack_Instance.push(inputValue,data.result)
+          PDA_Stack_Instance.push(inputValue, data.result)
           break;
       }
       // add the conversion result to the 
@@ -139,9 +144,8 @@ export default function ChatPage() {
         [MODELS.REGEX_TO_E_NFA]: `Demo: ε-NFA for regex "${modelInput}"\n\nStates: \\{q0, q1, q2, q3\\}\nAlphabet: \\{${modelInput
           .replace(/[^a-zA-Z]/g, "")
           .split("")
-          .join(", ")}\\}\nTransitions:\n  δ(q0, ε) = \\{q1\\}\n  δ(q1, ${
-          modelInput.charAt(0) || "a"
-        }) = \\{q2\\}\n  δ(q2, ε) = \\{q3\\}\nInitial State: q0\nFinal States: \\{q3\\}\n\nε-NFA construction complete!`,
+          .join(", ")}\\}\nTransitions:\n  δ(q0, ε) = \\{q1\\}\n  δ(q1, ${modelInput.charAt(0) || "a"
+          }) = \\{q2\\}\n  δ(q2, ε) = \\{q3\\}\nInitial State: q0\nFinal States: \\{q3\\}\n\nε-NFA construction complete!`,
         [MODELS.E_NFA_TO_DFA]: `Demo: DFA converted from ε-NFA "${modelInput}"\n\nStates: \\{\\{q0\\}, \\{q1,q2\\}, \\{q3\\}\\}\nAlphabet: \\{a, b\\}\nTransitions:\n  δ(\\{q0\\}, a) = \\{q1,q2\\}\n  δ(\\{q0\\}, b) = \\{q0\\}\n  δ(\\{q1,q2\\}, a) = \\{q3\\}\n  δ(\\{q1,q2\\}, b) = \\{q1,q2\\}\nInitial State: \\{q0\\}\nFinal States: \\{\\{q3\\}\\}\n\nSubset construction complete!`,
         [MODELS.PDA]: `Demo: PDA for input "${modelInput}"\n\nStates: \\{q0, q1, q2\\}\nInput Alphabet: \\{a, b\\}\nStack Alphabet: \\{Z, A, B\\}\nTransitions:\n  δ(q0, a, Z) = \\{(q1, AZ)\\}\n  δ(q1, a, A) = \\{(q1, AA)\\}\n  δ(q1, b, A) = \\{(q2, ε)\\}\n  δ(q2, b, A) = \\{(q2, ε)\\}\n  δ(q2, ε, Z) = \\{(q2, ε)\\}\nInitial State: q0\nStart Symbol: Z\nAcceptance: Empty Stack\n\nPDA construction complete for L = \\{a^n b^n | n ≥ 1\\}`,
       };
@@ -222,6 +226,38 @@ export default function ChatPage() {
     }
   };
 
+  const conversionHistoryHandler = () => {
+    setIsConversionHistoryOpen(true)
+  }
+
+  const conversionHistoryExtractor = (): Array<StackItem> => {
+    switch (selectedModel) {
+      case "DFA-Minimization":
+        return DFA_MINI_Stack_Instance.getStack()
+      case "Regex-to-ε-NFA":
+        return REGEX_Stack_Instance.getStack()
+      case "ε-NFA-to-DFA":
+        return E_NFA_Stack_Instance.getStack()
+      case "PDA":
+        return PDA_Stack_Instance.getStack();
+      default:
+        return [];
+    }
+  }
+
+  const conversions = [
+    {
+      id: 1,
+      input: "aaaaaaaabbbbbbcc",
+      result: ['delta(q0, a, Z) -> (q0, PUSH)', 'delta(q0, a, A) -> (q0, PUSH)', 'delta(q0, b, A) -> (q1, POP)', 'delta(q1, b, A) -> (q1, POP)', 'delta(q1, c, A) -> (q2, POP)', 'delta(q2, c, A) -> (q2, POP)', 'delta(q2, ε, Z) -> (qf, NOOP)'],
+    },
+    {
+      id: 2,
+      input: "aaaaaaaaaabbbbb",
+      result: ['delta(q0, a, Z) -> (q0, PUSH)', 'delta(q0, a, A) -> (q1, NOOP)', 'delta(q1, a, A) -> (q0, PUSH)', 'delta(q1, b, A) -> (q2, POP)', 'delta(q2, b, A) -> (q2, POP)', 'delta(q2, ε, Z) -> (qf, NOOP)'],
+    },
+  ];
+
   return (
     <div className="min-h-screen light-yellow-bg">
       {/* <div className="flex max-w-7xl mx-auto"> */}
@@ -239,11 +275,10 @@ export default function ChatPage() {
               {Object.values(MODELS).map((model) => (
                 <label
                   key={model}
-                  className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedModel === model
-                      ? "border-yellow-400 bg-yellow-50 text-yellow-700"
-                      : "border-gray-200 hover:border-yellow-300 hover:bg-yellow-25"
-                  }`}
+                  className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${selectedModel === model
+                    ? "border-yellow-400 bg-yellow-50 text-yellow-700"
+                    : "border-gray-200 hover:border-yellow-300 hover:bg-yellow-25"
+                    }`}
                 >
                   <input
                     type="radio"
@@ -256,11 +291,10 @@ export default function ChatPage() {
                     className="sr-only"
                   />
                   <div
-                    className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${
-                      selectedModel === model
-                        ? "border-yellow-500"
-                        : "border-gray-300"
-                    }`}
+                    className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${selectedModel === model
+                      ? "border-yellow-500"
+                      : "border-gray-300"
+                      }`}
                   >
                     {selectedModel === model && (
                       <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
@@ -301,23 +335,23 @@ export default function ChatPage() {
               </div>
             </div>
 
-         <div className="mt-9 pt-6 border-t border-gray-200">
-  <h4 className="font-medium text-gray-900 mb-2 text-center">Quick Actions</h4>
-  <div className="flex flex-col items-center gap-2">
-    <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]">
-      <span className="mr-1">🧹</span> Clear Chat History
-    </button>
-    <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]">
-      📄 View Conversion History
-    </button>
-    <Link
-      href="/instructions"
-      className="flex items-center gap-2 text-sm bg-yellow-400 text-white px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-500 transition-colors w-[200px]"
-    >
-      <span className="mr-1">📘</span> View Documentation
-    </Link>
-  </div>
-</div>
+            <div className="mt-9 pt-6 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-2 text-center">Quick Actions</h4>
+              <div className="flex flex-col items-center gap-2">
+                <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]">
+                  <span className="mr-1">🧹</span> Clear Chat History
+                </button>
+                <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={conversionHistoryHandler}>
+                  📄 View Conversion History
+                </button>
+                <Link
+                  href="/instructions"
+                  className="flex items-center gap-2 text-sm bg-yellow-400 text-white px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-500 transition-colors w-[200px]"
+                >
+                  <span className="mr-1">📘</span> View Documentation
+                </Link>
+              </div>
+            </div>
 
           </div>
         </div>
@@ -326,16 +360,16 @@ export default function ChatPage() {
         <div className="flex-1 px-4 py-6">
           <div className="space-y-4 mb-24">
             {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
-            <div className="border border-yellow-300 rounded-xl p-4 bg-white">
-            <label className="block text-sm font-semibold text-gray-800 mb-3">
-              {selectedModel === MODELS.DFA_MINIMIZATION
-                ? "Upload DFA Diagram"
-                : "Upload ε-NFA Diagram"}
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              className="block w-full text-sm text-gray-700 
+              <div className="border border-yellow-300 rounded-xl p-4 bg-white">
+                <label className="block text-sm font-semibold text-gray-800 mb-3">
+                  {selectedModel === MODELS.DFA_MINIMIZATION
+                    ? "Upload DFA Diagram"
+                    : "Upload ε-NFA Diagram"}
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="block w-full text-sm text-gray-700 
                 file:mr-4 
                 file:py-2 
                 file:px-4 
@@ -347,15 +381,15 @@ export default function ChatPage() {
                 file:bg-yellow-400 
                 file:text-white
                 hover:file:bg-yellow-300"
-            />
-          </div>
-          )}
+                />
+              </div>
+            )}
 
-             {/* Model Text Input Field */}
+            {/* Model Text Input Field */}
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">
-                  Input for {selectedModel}
-                </label>
+                Input for {selectedModel}
+              </label>
               <div className="space-y-2">
                 <textarea
                   value={modelInput}
@@ -365,253 +399,250 @@ export default function ChatPage() {
                   className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
                 />
                 <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={handleConvert}
-                  disabled={!modelInput.trim() || isConverting}
-                  className="w-35 mt-0 px-4 py-1 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isConverting ? "Converting..." : "Convert"}
-                </button>
-                {selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA ? (
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="w-38 px-4 py-1 border border-yellow-400 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 transition-colors"
-  >                  Add Text Input
-                </button>
-                ) : null}
+                  <button
+                    onClick={handleConvert}
+                    disabled={!modelInput.trim() || isConverting}
+                    className="w-35 mt-0 px-4 py-1 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isConverting ? "Converting..." : "Convert"}
+                  </button>
+                  {selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA ? (
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="w-38 px-4 py-1 border border-yellow-400 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 transition-colors"
+                    >                  Add Text Input
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>
-          {/* Add text input popup window */}
+            {/* Add text input popup window */}
             {showModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md h-[70vh] overflow-hidden flex flex-col">
-      {/* Title */}
-      <h2 className="text-lg font-semibold text-yellow-600 mb-4">
-        Create Automata Input
-      </h2>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+                <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md h-[70vh] overflow-hidden flex flex-col">
+                  {/* Title */}
+                  <h2 className="text-lg font-semibold text-yellow-600 mb-4">
+                    Create Automata Input
+                  </h2>
 
-      {/* Top Input Fields */}
-      <div className="space-y-3 flex-shrink-0">
-        <div>
-          <label className="block py-1 text-sm font-medium text-gray-700">
-            Initial state
-          </label>
-          <input
-            placeholder="e.g. q0"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            value={initialState}
-            onChange={(e) => setInitialState(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="block py-1 text-sm font-medium text-gray-700">
-            Final state
-          </label>
-          <input
-            placeholder="e.g. qF1,qF2"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            value={finalState}
-            onChange={(e) => setFinalState(e.target.value)}
-          />
-        </div>
-        {selectedModel === MODELS.E_NFA_TO_DFA && (
-        <div>
-          <label className="block py-1 text-sm font-medium text-gray-700">
-            Alphabet
-          </label>
-          <input
-            placeholder="comma separated, e.g. a,b"
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-            value={alphabet}
-            onChange={(e) => setAlphabet(e.target.value)}
-          />
-        </div>
-        )}
-      </div>
+                  {/* Top Input Fields */}
+                  <div className="space-y-3 flex-shrink-0">
+                    <div>
+                      <label className="block py-1 text-sm font-medium text-gray-700">
+                        Initial state
+                      </label>
+                      <input
+                        placeholder="e.g. q0"
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        value={initialState}
+                        onChange={(e) => setInitialState(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block py-1 text-sm font-medium text-gray-700">
+                        Final state
+                      </label>
+                      <input
+                        placeholder="e.g. qF1,qF2"
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        value={finalState}
+                        onChange={(e) => setFinalState(e.target.value)}
+                      />
+                    </div>
+                    {selectedModel === MODELS.E_NFA_TO_DFA && (
+                      <div>
+                        <label className="block py-1 text-sm font-medium text-gray-700">
+                          Alphabet
+                        </label>
+                        <input
+                          placeholder="comma separated, e.g. a,b"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                          value={alphabet}
+                          onChange={(e) => setAlphabet(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
 
-      {/* Transitions Scroll Area */}
-        <label className="block py-3 text-sm font-medium text-gray-700">
-            Transitions
-          </label>
-        <div className="flex-grow mt-0 overflow-y-auto pt-1 space-y-2">
-        
-        {transitions.map((t, idx) => (
-          <div key={idx} className="flex space-x-2 items-center">
-            <input
-              placeholder="From"
-              value={t.from}
-              onChange={(e) =>
-                setTransitions((prev) =>
-                  prev.map((tran, i) =>
-                    i === idx ? { ...tran, from: e.target.value } : tran
-                  )
-                )
-              }
-              className="w-1/3 border rounded px-2 py-1 text-sm"
-            />
-            <input
-              placeholder="Input"
-              value={t.input}
-              onChange={(e) =>
-                setTransitions((prev) =>
-                  prev.map((tran, i) =>
-                    i === idx ? { ...tran, input: e.target.value } : tran
-                  )
-                )
-              }
-              className="w-1/3 border rounded px-2 py-1 text-sm"
-            />
-            <input
-              placeholder="To"
-              value={t.to}
-              onChange={(e) =>
-                setTransitions((prev) =>
-                  prev.map((tran, i) =>
-                    i === idx ? { ...tran, to: e.target.value } : tran
-                  )
-                )
-              }
-              className="w-1/3 border rounded px-2 py-1 text-sm"
-            />
-            <button
-              onClick={() =>
-                setTransitions((prev) => prev.filter((_, i) => i !== idx))
-              }
-              className="text-red-500 hover:text-red-700"
-              title="Delete Transition"
-            >
-              🗑️
-            </button>
-          </div>
-        ))}
+                  {/* Transitions Scroll Area */}
+                  <label className="block py-3 text-sm font-medium text-gray-700">
+                    Transitions
+                  </label>
+                  <div className="flex-grow mt-0 overflow-y-auto pt-1 space-y-2">
 
-        {/* Add Transition Button */}
-       
-      </div>
-        <button
-          className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-2 py-1 transition-colors"
-          onClick={() =>
-            setTransitions((prev) => [...prev, { from: "", input: "", to: "" }])
-          }
-        >
-          <span className="text-yellow-500 mr-1">➕</span> Add Transition
-        </button>
-      {/* Footer Buttons */}
-      <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
-        <button
-          onClick={() => setShowModal(false)}
-          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={() => {
-            setInitialState("");
-            setFinalState("");
-            setAlphabet("");
-            setTransitions([{ from: "", input: "", to: "" }]); // leave 1 empty row
-          }}
-          className="px-4 py-2 text-sm text-red-500 border border-red-300 rounded hover:bg-red-100 transition-colors"
-        >
-          Clear All
-        </button>
+                    {transitions.map((t, idx) => (
+                      <div key={idx} className="flex space-x-2 items-center">
+                        <input
+                          placeholder="From"
+                          value={t.from}
+                          onChange={(e) =>
+                            setTransitions((prev) =>
+                              prev.map((tran, i) =>
+                                i === idx ? { ...tran, from: e.target.value } : tran
+                              )
+                            )
+                          }
+                          className="w-1/3 border rounded px-2 py-1 text-sm"
+                        />
+                        <input
+                          placeholder="Input"
+                          value={t.input}
+                          onChange={(e) =>
+                            setTransitions((prev) =>
+                              prev.map((tran, i) =>
+                                i === idx ? { ...tran, input: e.target.value } : tran
+                              )
+                            )
+                          }
+                          className="w-1/3 border rounded px-2 py-1 text-sm"
+                        />
+                        <input
+                          placeholder="To"
+                          value={t.to}
+                          onChange={(e) =>
+                            setTransitions((prev) =>
+                              prev.map((tran, i) =>
+                                i === idx ? { ...tran, to: e.target.value } : tran
+                              )
+                            )
+                          }
+                          className="w-1/3 border rounded px-2 py-1 text-sm"
+                        />
+                        <button
+                          onClick={() =>
+                            setTransitions((prev) => prev.filter((_, i) => i !== idx))
+                          }
+                          className="text-red-500 hover:text-red-700"
+                          title="Delete Transition"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Add Transition Button */}
+
+                  </div>
+                  <button
+                    className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-2 py-1 transition-colors"
+                    onClick={() =>
+                      setTransitions((prev) => [...prev, { from: "", input: "", to: "" }])
+                    }
+                  >
+                    <span className="text-yellow-500 mr-1">➕</span> Add Transition
+                  </button>
+                  {/* Footer Buttons */}
+                  <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setInitialState("");
+                        setFinalState("");
+                        setAlphabet("");
+                        setTransitions([{ from: "", input: "", to: "" }]); // leave 1 empty row
+                      }}
+                      className="px-4 py-2 text-sm text-red-500 border border-red-300 rounded hover:bg-red-100 transition-colors"
+                    >
+                      Clear All
+                    </button>
 
 
-        <button
-          onClick={() => {
-             let inputText = "";
-  
-              if (selectedModel === MODELS.DFA_MINIMIZATION) {
-                const formattedTransitions = transitions
-              .filter(t => t.from && t.input && t.to)
-              .reduce((acc: Record<string, string>, t) => {
-                const key = t.from.trim();
-                const arrow = `${t.input.trim()}-->${t.to.trim()}`;
-                acc[key] = acc[key] ? `${acc[key]}, ${arrow}` : arrow;
-                return acc;
-              }, {});
+                    <button
+                      onClick={() => {
+                        let inputText = "";
 
-                
-                const transitionStr = Object.entries(formattedTransitions)
-                  .map(([state, trans]) => `${state}: ${trans}`)
-                  .join("; ");
+                        if (selectedModel === MODELS.DFA_MINIMIZATION) {
+                          const formattedTransitions = transitions
+                            .filter(t => t.from && t.input && t.to)
+                            .reduce((acc: Record<string, string>, t) => {
+                              const key = t.from.trim();
+                              const arrow = `${t.input.trim()}-->${t.to.trim()}`;
+                              acc[key] = acc[key] ? `${acc[key]}, ${arrow}` : arrow;
+                              return acc;
+                            }, {});
 
-                inputText = `${transitionStr}; in:${initialState}; fi:${finalState}`;
-              } else if (selectedModel === MODELS.E_NFA_TO_DFA){
-                        const formattedFinal = finalState
-                          .split(",")
-                          .map((s) => `{${s.trim()}}`)
-                          .join("");
-                        const transitionText = transitions
-                          .filter((t) => t.from && t.input && t.to)
-                          .map((t) => `{${t.from}}->${t.input}->{${t.to}}`)
-                          .join(",");
-                        inputText = `In:{${initialState}};Fi:${formattedFinal};Abt:{${alphabet
-                          .split(",")
-                          .map((a) => a.trim())
-                          .join("}{")}};Trn:${transitionText}`;
+
+                          const transitionStr = Object.entries(formattedTransitions)
+                            .map(([state, trans]) => `${state}: ${trans}`)
+                            .join("; ");
+
+                          inputText = `${transitionStr}; in:${initialState}; fi:${finalState}`;
+                        } else if (selectedModel === MODELS.E_NFA_TO_DFA) {
+                          const formattedFinal = finalState
+                            .split(",")
+                            .map((s) => `{${s.trim()}}`)
+                            .join("");
+                          const transitionText = transitions
+                            .filter((t) => t.from && t.input && t.to)
+                            .map((t) => `{${t.from}}->${t.input}->{${t.to}}`)
+                            .join(",");
+                          inputText = `In:{${initialState}};Fi:${formattedFinal};Abt:{${alphabet
+                            .split(",")
+                            .map((a) => a.trim())
+                            .join("}{")}};Trn:${transitionText}`;
                         }
                         setModelInput(inputText);
                         setShowModal(false);
                       }}
-          className="px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
-          >
-            Generate Input
-          </button>
-      </div>
-    </div>
-  </div>
-)}
-
-            
-            {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${  // ← UPDATE THIS LINE
-                  message.role === "user" ? "flex-row-reverse" : "flex-row"
-                } items-start space-x-3`}
-              >
-                {/* Avatar section stays the same */}
-                <div
-                  className={`flex-shrink-0 ${
-                    message.role === "user" ? "ml-3" : "mr-3"
-                  }`}
-                >
-                  {message.role === "assistant" ? (
-                    <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">SF</span>
-                    </div>
-                  ) : (
-                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">U</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
-                <div
-                  className={`rounded-2xl px-4 py-3 ${  // ← REMOVE max-w-xs lg:max-w-md from here
-                    message.role === "user"
-                      ? "chat-bubble-user"
-                      : "chat-bubble-ai"
-                  }`}
-                >
-                  {/* REPLACE the existing content section with: */}
-                  <div className="overflow-hidden">
-                    <div
-                      className={`prose prose-sm max-w-none break-words leading-relaxed ${
-                        message.role === "user" 
-                          ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white" 
-                          : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
-                      } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                      className="px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
                     >
-                      {/* <ReactMarkdown
+                      Generate Input
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+              >
+                <div
+                  className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${  // ← UPDATE THIS LINE
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                    } items-start space-x-3`}
+                >
+                  {/* Avatar section stays the same */}
+                  <div
+                    className={`flex-shrink-0 ${message.role === "user" ? "ml-3" : "mr-3"
+                      }`}
+                  >
+                    {message.role === "assistant" ? (
+                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">SF</span>
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">U</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
+                  <div
+                    className={`rounded-2xl px-4 py-3 ${  // ← REMOVE max-w-xs lg:max-w-md from here
+                      message.role === "user"
+                        ? "chat-bubble-user"
+                        : "chat-bubble-ai"
+                      }`}
+                  >
+                    {/* REPLACE the existing content section with: */}
+                    <div className="overflow-hidden">
+                      <div
+                        className={`prose prose-sm max-w-none break-words leading-relaxed ${message.role === "user"
+                          ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                          : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                          } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                      >
+                        {/* <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeHighlight]}
                         components={{
@@ -651,94 +682,91 @@ export default function ChatPage() {
                       >
                         {message.content ?? ""}
                       </ReactMarkdown> */}
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeHighlight]}
-                        components={{
-                          pre: (props: any) => (
-                            <div className="relative my-4">
-                              <pre 
-                                className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${
-                                  message.role === "user" 
-                                    ? "bg-yellow-800 text-yellow-100 border-yellow-600" 
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                          components={{
+                            pre: (props: any) => (
+                              <div className="relative my-4">
+                                <pre
+                                  className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${message.role === "user"
+                                    ? "bg-yellow-800 text-yellow-100 border-yellow-600"
                                     : "bg-yellow-100 text-yellow-100 border-yellow-100"
-                                }`}
-                                style={{
-                                  fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                                }}
-                              >
-                                {props.children}
-                              </pre>
-                              <button 
-                                className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
-                                onClick={() => {
-                                  // Extract text content for copying
-                                  const extractText = (element: any): string => {
-                                    if (typeof element === 'string') return element;
-                                    if (Array.isArray(element)) return element.map(extractText).join('');
-                                    if (element?.props?.children) return extractText(element.props.children);
-                                    return '';
-                                  };
-                                  const codeText = extractText(props.children);
-                                  navigator.clipboard.writeText(codeText);
-                                }}
-                              >
-                                Copy
-                              </button>
-                            </div>
-                          ),
-                          code: (props: any) => {
-                            const isInline = !props.className || !props.className.includes('language-');
-                            
-                            if (isInline) {
-                              return (
-                                <code 
-                                  className={`px-1.5 py-0.5 rounded text-xs font-mono ${
-                                    message.role === "user"
-                                      ? "bg-yellow-200 text-yellow-900"
-                                      : "bg-gray-200 text-gray-800"
-                                  }`}
-                                >
-                                  {props.children}
-                                </code>
-                              );
-                            } else {
-                              return (
-                                <code 
-                                  className={`block whitespace-pre-wrap ${props.className || ''}`}
+                                    }`}
                                   style={{
                                     fontFamily: 'Consolas, Monaco, "Courier New", monospace',
                                   }}
                                 >
                                   {props.children}
-                                </code>
-                              );
-                            }
-                          }
-                        }}
-                      >
-                        {message.content ?? ""}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
+                                </pre>
+                                <button
+                                  className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                                  onClick={() => {
+                                    // Extract text content for copying
+                                    const extractText = (element: any): string => {
+                                      if (typeof element === 'string') return element;
+                                      if (Array.isArray(element)) return element.map(extractText).join('');
+                                      if (element?.props?.children) return extractText(element.props.children);
+                                      return '';
+                                    };
+                                    const codeText = extractText(props.children);
+                                    navigator.clipboard.writeText(codeText);
+                                  }}
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                            ),
+                            code: (props: any) => {
+                              const isInline = !props.className || !props.className.includes('language-');
 
-                  {/* Timestamp stays the same */}
-                  <p
-                    className={`text-xs mt-1 ${
-                      message.role === "user"
+                              if (isInline) {
+                                return (
+                                  <code
+                                    className={`px-1.5 py-0.5 rounded text-xs font-mono ${message.role === "user"
+                                      ? "bg-yellow-200 text-yellow-900"
+                                      : "bg-gray-200 text-gray-800"
+                                      }`}
+                                  >
+                                    {props.children}
+                                  </code>
+                                );
+                              } else {
+                                return (
+                                  <code
+                                    className={`block whitespace-pre-wrap ${props.className || ''}`}
+                                    style={{
+                                      fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                    }}
+                                  >
+                                    {props.children}
+                                  </code>
+                                );
+                              }
+                            }
+                          }}
+                        >
+                          {message.content ?? ""}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+
+                    {/* Timestamp stays the same */}
+                    <p
+                      className={`text-xs mt-1 ${message.role === "user"
                         ? "text-yellow-100"
                         : "text-gray-500"
-                    }`}
-                  >
-                    {message.timestamp.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                        }`}
+                    >
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
 
             {/* Loading Message */}
             {isLoading && (
@@ -838,6 +866,53 @@ export default function ChatPage() {
         </div>
       </div>
 
+      {/* Conversion History Model */}
+      {isConversionHistoryOpen &&
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.7)", // 50% black opacity
+          }}
+        >
+          <div className="bg-[#FFFFFF] w-full max-w-2xl rounded-lg p-6 shadow-xl relative">
+            <button
+              onClick={() => setIsConversionHistoryOpen(false)}
+              className="absolute top-3 right-4 text-xl font-bold text-gray-600 hover:text-black"
+            >
+              &times;
+            </button>
+            <h1 className="text-2xl font-semibold mb-4">Conversion History</h1>
+            {conversions?.map((conversion, key) => (
+              <div
+                key={key + 1}
+                className="mb-6 border border-gray-300 rounded-lg bg-[#FFF8DE] p-4 shadow"
+              >
+                <h2 className="text-lg font-medium mb-2">🔢 Conversion {key + 1}</h2>
+                <p className="mb-2">
+                  <span className="font-semibold">Context-Free Input String: </span>
+                  <span className="bg-green-100 px-2 py-1 rounded text-sm font-mono">
+                    {conversion.input}
+                  </span>
+                </p>
+                <p className="font-semibold mb-1">Conversion Result:</p>
+                <div className="bg-white p-3 rounded-md text-sm font-mono whitespace-pre-wrap">
+                  {/* {conversion.conversion?.map((line, idx) => (
+                    <div key={idx} className="mb-1">
+                      {line}
+                    </div>
+                  ))} */}
+                  {conversion?.result}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      }
     </div>
   );
 }
