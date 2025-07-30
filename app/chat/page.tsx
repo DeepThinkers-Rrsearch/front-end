@@ -8,6 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
+import { Eye } from "lucide-react";
 
 interface Message {
   id: string;
@@ -66,6 +67,9 @@ export default function ChatPage() {
   const [finalState, setFinalState] = useState("");
   const [alphabet, setAlphabet] = useState("");
   const [transitions, setTransitions] = useState([{ from: "", input: "", to: "" }]);
+
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -385,31 +389,65 @@ export default function ChatPage() {
         {/* Main Chat Area */}
         <div className="flex-1 px-4 py-6">
           <div className="space-y-4 mb-24">
-            {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
-              <div className="border border-yellow-300 rounded-xl p-4 bg-white">
-                <label className="block text-sm font-semibold text-gray-800 mb-3">
-                  {selectedModel === MODELS.DFA_MINIMIZATION
-                    ? "Upload DFA Diagram"
-                    : "Upload ε-NFA Diagram"}
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="block w-full text-sm text-gray-700 
-                file:mr-4 
-                file:py-2 
-                file:px-4 
-                file:rounded-lg 
-                file:border 
-                file:border-gray-300 
-                file:text-sm 
-                file:font-medium 
-                file:bg-yellow-400 
-                file:text-white
-                hover:file:bg-yellow-300"
-                />
-              </div>
-            )}
+                {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
+                    <div className="relative border border-yellow-300 rounded-xl p-4 bg-white">
+                      <div className="flex items-center justify-between mb-1 pr-4">
+                      <label className="block text-sm font-semibold text-gray-800 mb-3">
+                        {selectedModel === MODELS.DFA_MINIMIZATION
+                          ? "Upload DFA Diagram"
+                          : "Upload ε-NFA Diagram"}
+                      </label>
+                      {uploadedImage && (
+                      <button
+                        // onClick={() => setShowPreview(!showPreview)}
+                        onMouseDown={() => setShowPreview(true)}
+                      onMouseUp={() => setShowPreview(false)}
+                      onMouseLeave={() => setShowPreview(false)} // ensures it closes if pointer leaves
+                        className="inline-flex items-center gap-1 text-sm text-yellow-600 hover:text-yellow-800"
+                        title="Preview Image"
+                      >
+                        <Eye className="w-5 h-5" />
+                        Preview
+                      </button>
+                    )}
+                    </div>
+
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setUploadedImage(file || null);
+                        setShowPreview(false); // Reset preview
+                      }}
+                      className="block text-sm text-gray-700 
+                        file:mr-4 
+                        file:py-2 
+                        file:px-4 
+                        file:rounded-lg 
+                        file:border 
+                        file:border-gray-300 
+                        file:text-sm 
+                        file:font-medium 
+                        file:bg-yellow-400 
+                        file:text-white
+                        hover:file:bg-yellow-300"
+                    />
+                  </div>
+
+                  {/* Image Preview Popup */}
+                {showPreview && uploadedImage && (
+                <div className="absolute top-12 right-4 z-50 p-2 border rounded-lg bg-white shadow-lg max-w-sm">
+                  <img
+                    src={URL.createObjectURL(uploadedImage)}
+                    alt="Preview"
+                    className="max-w-full max-h-[300px] rounded"
+                  />
+                </div>
+              )}
+                </div>
+              )}
 
             {/* Model Text Input Field */}
             <div className="space-y-4">
@@ -615,16 +653,17 @@ export default function ChatPage() {
                         setModelInput(inputText);
                         setShowModal(false);
                       }}
-                      className="px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
-                    >
-                      Generate Input
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-
+          className="px-4 py-2 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+          >
+            Generate Input
+          </button>
+          </div>
+        </div>
+      </div>
+    )}
+            {/* Messaging interface */}
+            <div className="flex flex-col">
+            <div className="h-[360px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -822,9 +861,10 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
-
+    </div>
+    </div>
       {/* Chat Input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-yellow-200">
+      <div className="fixed bottom-0 left-80 right-0 bg-white border-t border-yellow-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <form onSubmit={handleSubmit} className="flex space-x-4">
             <div className="flex-1 relative">
