@@ -398,8 +398,8 @@ export default function ChatPage() {
                 <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={conversionHistoryHandler}>
                   📄 View Conversion History
                 </button>
-                <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={simulationModelHandler}>
-                  ▶️ Simulate
+                <button className="flex items-center gap-2 text-sm bg-yellow-200 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-400 transition-colors w-[200px]" onClick={simulationModelHandler}>
+                  <span className="mr-6">▶️</span> Simulate
                 </button>
                 <Link
                   href="/instructions"
