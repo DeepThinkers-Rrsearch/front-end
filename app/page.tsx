@@ -49,8 +49,8 @@ export default function HomePage() {
 
                   {/* State Transitions */}
                   <div className="absolute top-32 left-1/2 transform -translate-x-1/2 w-24 h-32 bg-white rounded-lg flex flex-col items-center justify-center">
-                    <div className="text-sm font-bold text-gray-700">DFA</div>
-                    <div className="text-xs text-gray-500">Minimization</div>
+                    <div className="text-sm font-bold text-gray-700">Automata</div>
+                    <div className="text-xs text-gray-500">Conversions</div>
                   </div>
 
                   {/* Additional States */}
