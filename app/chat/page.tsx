@@ -41,7 +41,7 @@ const initStackObject: stackObjectTypes = {
 const MODELS = {
   DFA_MINIMIZATION: "DFA-Minimization",
   REGEX_TO_E_NFA: "Regex-to-ε-NFA",
-  E_NFA_TO_DFA: "ε-NFA-to-DFA",
+  E_NFA_TO_DFA: "e_NFA-to-DFA",
   PDA: "PDA",
 } as const;
 
@@ -120,7 +120,7 @@ export default function ChatPage() {
       case "Regex-to-ε-NFA":
         setRegexToENfaTransition(convertResult);
         break;
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         setENfaToDfaTransition(convertResult);
         break;
       case "PDA":
@@ -160,7 +160,7 @@ export default function ChatPage() {
       case "Regex-to-ε-NFA":
         setLatestInputRegex(modelInput);
         break;
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         setLatestInputENfa(modelInput);
         break;
       case "PDA":
@@ -210,7 +210,7 @@ export default function ChatPage() {
           setStackObject({ ...stackObject, DFA_MINIMIZATION: RegexArray })
           //REGEX_Stack_Instance.push(inputValue, data.result)
           break;
-        case "ε-NFA-to-DFA":
+        case "e_NFA-to-DFA":
           const E_NFAArray = stackObject.E_NFA_TO_DFA;
           E_NFAArray.push({
             string: modelInput,
@@ -430,7 +430,7 @@ export default function ChatPage() {
         return stackObject.DFA_MINIMIZATION
       case "Regex-to-ε-NFA":
         return stackObject.REGEX_TO_E_NFA
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         return stackObject.E_NFA_TO_DFA
       case "PDA":
         return stackObject.PDA
@@ -464,7 +464,7 @@ export default function ChatPage() {
         return <></>
       case "Regex-to-ε-NFA":
         return <></>
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         return <></>
       case "PDA":
         return (
