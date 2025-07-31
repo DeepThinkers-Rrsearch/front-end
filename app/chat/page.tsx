@@ -9,6 +9,7 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
 import { Eye, Plus } from "lucide-react";
+import { useAppStore } from '../../utils/store';
 
 interface Message {
   id: string;
@@ -75,6 +76,18 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // access the store
+  const {
+    setLatestInputRegex,
+    setLatestInputENfa,
+    setLatestInputDfa,
+    setLatestInputPda,
+    setRegexToENfaTransition,
+    setENfaToDfaTransition,
+    setDfaToMinimizedDfaTransition,
+    setPdaTransition
+  } = useAppStore();
+
   // useEffect(() => {
   //   scrollToBottom();
   // }, [messages]);
@@ -83,6 +96,25 @@ export default function ChatPage() {
     setModelInput(""); // clear model input when model changes
   }, [selectedModel]);
 
+  useEffect(() => {
+    //set the converted transition values
+    switch (selectedModel) {
+      case "DFA-Minimization":
+        setDfaToMinimizedDfaTransition(convertResult);
+        break;
+      case "Regex-to-ε-NFA":
+        setRegexToENfaTransition(convertResult);
+        break;
+      case "ε-NFA-to-DFA":
+        setENfaToDfaTransition(convertResult);
+        break;
+      case "PDA":
+        setPdaTransition(convertResult)
+        break;
+      default:
+        break;
+    }
+  }, [convertResult])
 
   const getModelPlaceholder = (model: ModelType) => {
     switch (model) {
@@ -104,6 +136,25 @@ export default function ChatPage() {
 
     setIsConverting(true);
     setConvertResult("");
+
+    // Update the latest value
+    switch (selectedModel) {
+      case "DFA-Minimization":
+        setLatestInputDfa(modelInput);
+        break;
+      case "Regex-to-ε-NFA":
+        setLatestInputRegex(modelInput);
+        break;
+      case "ε-NFA-to-DFA":
+        setLatestInputENfa(modelInput);
+        break;
+      case "PDA":
+        setLatestInputPda(modelInput)
+        break;
+      default:
+        break;
+    }
+
 
     try {
       // Demo API call - replace with actual API endpoint
@@ -165,6 +216,80 @@ export default function ChatPage() {
     }
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!inputValue.trim() || isLoading) return;
+
+
+  //   const userMessage: Message = {
+  //     id: Date.now().toString(),
+  //     content: inputValue,
+  //     role: "user",
+  //     timestamp: new Date(),
+  //   };
+
+  //   console.log("crown",inputValue);
+
+  //   setMessages((prev) => [...prev, userMessage]);
+  //   setInputValue("");
+  //   setIsLoading(true);
+
+  //   try {
+  //     // Prepare messages in LangGraph format
+  //     const langGraphMessages = [...messages, userMessage].map((msg) => ({
+  //       role: msg.role,
+  //       content: msg.content,
+  //     }));
+
+  //     console.log("hen",convertResult,langGraphMessages);
+
+  //     // Call the API
+  //     const response = await fetch("/api/chat", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         messages: langGraphMessages,
+  //         context: {
+  //           selectedModel,
+  //           lastConversion: convertResult,
+  //         },
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`API error: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+
+  //     console.log("Hava",data);
+  //     const aiMessage: Message = {
+  //       id: (Date.now() + 1).toString(),
+  //       content: data.content,
+  //       role: "assistant",
+  //       timestamp: new Date(),
+  //     };
+
+  //     setMessages((prev) => [...prev, aiMessage]);
+  //   } catch (error) {
+  //     console.error("Failed to get AI response:", error);
+
+  //     // Fallback error message
+  //     const errorMessage: Message = {
+  //       id: (Date.now() + 1).toString(),
+  //       content:
+  //         "Sorry, I'm having trouble responding right now. Please try again. You can still use the conversion models on the left sidebar.",
+  //       role: "assistant",
+  //       timestamp: new Date(),
+  //     };
+  //     setMessages((prev) => [...prev, errorMessage]);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
@@ -187,7 +312,10 @@ export default function ChatPage() {
         content: msg.content,
       }));
 
-      // Call the API
+      // Get current Zustand store state
+      const storeState = useAppStore.getState();
+
+      // Pass the store state to backend
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -198,6 +326,23 @@ export default function ChatPage() {
           context: {
             selectedModel,
             lastConversion: convertResult,
+          },
+          // Send the entire Zustand store state
+          appState: {
+            regex_to_e_nfa_used: storeState.regex_to_e_nfa_used,
+            e_nfa_to_dfa_used: storeState.e_nfa_to_dfa_used,
+            dfa_to_minimized_dfa_used: storeState.dfa_to_minimized_dfa_used,
+            pda_used: storeState.pda_used,
+            is_pressed_convert: convertResult ? true : storeState.is_pressed_convert,
+            latest_input_regex: storeState.latest_input_regex,
+            latest_input_e_nfa: storeState.latest_input_e_nfa,
+            latest_input_dfa: storeState.latest_input_dfa,
+            latest_input_pda: storeState.latest_input_pda,
+            regex_to_e_nfa_transition: storeState.regex_to_e_nfa_transition,
+            e_nfa_to_dfa_transition: storeState.e_nfa_to_dfa_transition,
+            dfa_to_minimized_dfa_transition: storeState.dfa_to_minimized_dfa_transition,
+            pda_transition: storeState.pda_transition,
+            selected_model: { name: selectedModel },
           },
         }),
       });
@@ -219,7 +364,6 @@ export default function ChatPage() {
     } catch (error) {
       console.error("Failed to get AI response:", error);
 
-      // Fallback error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content:
@@ -238,6 +382,7 @@ export default function ChatPage() {
   }
 
   const conversionHistoryExtractor = (): Array<StackItem> => {
+    console.log("butterfly effect",selectedModel);
     switch (selectedModel) {
       case "DFA-Minimization":
         return DFA_MINI_Stack_Instance.getStack()
@@ -310,6 +455,10 @@ export default function ChatPage() {
   const onClose = () => {
     setIsSimulatingModelOpen(false)
   }
+
+  //---------------------
+  console.log("Butterfly",PDA_Stack_Instance.getStack());
+
 
   return (
     <div className="flex min-h-screen light-yellow-bg">
@@ -612,39 +761,39 @@ export default function ChatPage() {
                       </div>
                     ))}
 
-        {/* Add Transition Button */}
-       
-      </div>
-      <div className="w-fit">
-        <button
-          className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-1 py-1 transition-colors"
-          onClick={() =>
-            setTransitions((prev) => [...prev, { from: "", input: "", to: "" }])
-          }
-        >
-          <span className="text-yellow-500 mr-1"><Plus className="w-5 h-5" />
-          </span> Add Transition
-        </button>
-        </div>
-      {/* Footer Buttons */}
-      <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
-        <button
-          onClick={() => setShowModal(false)}
-          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={() => {
-            setInitialState("");
-            setFinalState("");
-            setAlphabet("");
-            setTransitions([{ from: "", input: "", to: "" }]); // leave 1 empty row
-          }}
-          className="px-4 py-2 text-sm text-red-500 border border-red-300 rounded hover:bg-red-100 transition-colors"
-        >
-          Clear All
-        </button>
+                    {/* Add Transition Button */}
+
+                  </div>
+                  <div className="w-fit">
+                    <button
+                      className="mt-2 inline-flex items-center text-sm text-yellow-600 hover:bg-yellow-100 rounded px-1 py-1 transition-colors"
+                      onClick={() =>
+                        setTransitions((prev) => [...prev, { from: "", input: "", to: "" }])
+                      }
+                    >
+                      <span className="text-yellow-500 mr-1"><Plus className="w-5 h-5" />
+                      </span> Add Transition
+                    </button>
+                  </div>
+                  {/* Footer Buttons */}
+                  <div className="flex-shrink-0 mt-4 flex justify-end gap-3 pt-4">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setInitialState("");
+                        setFinalState("");
+                        setAlphabet("");
+                        setTransitions([{ from: "", input: "", to: "" }]); // leave 1 empty row
+                      }}
+                      className="px-4 py-2 text-sm text-red-500 border border-red-300 rounded hover:bg-red-100 transition-colors"
+                    >
+                      Clear All
+                    </button>
 
 
                     <button
@@ -991,7 +1140,7 @@ export default function ChatPage() {
               &times;
             </button>
             <h1 className="text-2xl font-semibold mb-4">Conversion History</h1>
-            {conversions?.map((conversion, key) => (
+            {conversionHistoryExtractor()?.map((conversion, key) => (
               <div
                 key={key + 1}
                 className="mb-6 border border-gray-300 rounded-lg bg-[#FFF8DE] p-4 shadow"
@@ -1000,7 +1149,7 @@ export default function ChatPage() {
                 <p className="mb-2">
                   <span className="font-semibold">Context-Free Input String: </span>
                   <span className="bg-green-100 px-2 py-1 rounded text-sm font-mono">
-                    {conversion.input}
+                    {conversion.string}
                   </span>
                 </p>
                 <p className="font-semibold mb-1">Conversion Result:</p>
@@ -1010,7 +1159,7 @@ export default function ChatPage() {
                       {line}
                     </div>
                   ))} */}
-                  {conversion?.result}
+                  {conversion?.conversion}
                 </div>
               </div>
             ))}

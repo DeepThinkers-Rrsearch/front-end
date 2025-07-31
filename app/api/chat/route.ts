@@ -1,29 +1,11 @@
 import { setup_llm } from "@/utils/llm";
 import { NextRequest, NextResponse } from "next/server";
 
-const initialAppState = {
-  regex_to_e_nfa_used: false,
-  e_nfa_to_dfa_used: false,
-  dfa_to_minimized_dfa_used: false,
-  pda_used: false,
-  is_pressed_convert: false,
-  latest_input_regex: "",
-  latest_input_e_nfa: "",
-  latest_input_dfa: "",
-  latest_input_pda: "",
-  regex_to_e_nfa_transition: "",
-  e_nfa_to_dfa_transition: "",
-  dfa_to_minimized_dfa_transition: "",
-  pda_transition: "",
-  selected_model: { name: "Regex-to-ε-NFA" },
-};
-
-// Initialize the LLM once (could be moved to a singleton pattern)
-const { app, config } = setup_llm(initialAppState);
-
 export async function POST(request: NextRequest) {
+  console.log("API Route triggered");
   try {
-    const { messages } = await request.json();
+    // Extract both messages AND context
+    const { messages, context, appState } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -31,6 +13,34 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    //Use the app state from frontend instead of static state
+    const currentAppState = appState || {
+      regex_to_e_nfa_used: false,
+      e_nfa_to_dfa_used: false,
+      dfa_to_minimized_dfa_used: false,
+      pda_used: false,
+      is_pressed_convert: false,
+      latest_input_regex: "",
+      latest_input_e_nfa: "",
+      latest_input_dfa: "",
+      latest_input_pda: "",
+      regex_to_e_nfa_transition: "",
+      e_nfa_to_dfa_transition: "",
+      dfa_to_minimized_dfa_transition: "",
+      pda_transition: "",
+      selected_model: { name: context?.selectedModel || "DFA-Minimization" },
+    };
+
+    // Set is_pressed_convert if we have conversion results
+    if (context?.lastConversion) {
+      currentAppState.is_pressed_convert = true;
+    }
+
+    console.log("App State being used:", currentAppState);
+
+    // Setup LLM with dynamic app state
+    const { app, config } = setup_llm(currentAppState);
 
     // Invoke the LangGraph app
     const output = await app.invoke({ messages }, config);

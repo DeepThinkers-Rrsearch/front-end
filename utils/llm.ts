@@ -43,42 +43,41 @@ export const setup_llm = (appState: AppState) => {
     apiKey: process.env.GOOGLE_API_KEY,
   });
 
-  // // Define the function that calls the model
-  // const callModel = async (state: typeof MessagesAnnotation.State) => {
-  //   const response = await llm.invoke(state.messages);
-  //   return { messages: response };
-  // };
+  // Create a mutable reference to the app state
+  let currentAppState = { ...appState };
 
   const callModel = async (state: typeof MessagesAnnotation.State) => {
+    console.log("Hello State", currentAppState); // Use currentAppState instead of appState
+    
     // Handle regex to ε-NFA hint
     let regex_to_e_nfa_hint = "";
-    if (!appState.regex_to_e_nfa_used && appState.is_pressed_convert) {
-      appState.regex_to_e_nfa_used = true;
-      regex_to_e_nfa_hint = `\nHere is the converted ε-NFA transition for the regular expression ${appState.latest_input_regex || ''}:\n${appState.regex_to_e_nfa_transition || ''}`;
+    if (!currentAppState.regex_to_e_nfa_used && currentAppState.is_pressed_convert) {
+      currentAppState.regex_to_e_nfa_used = true; // Update currentAppState
+      regex_to_e_nfa_hint = `\nHere is the converted ε-NFA transition for the regular expression ${currentAppState.latest_input_regex || ''}:\n${currentAppState.regex_to_e_nfa_transition || ''}`;
     }
 
     // Handle ε-NFA to DFA hint
     let e_nfa_to_dfa_hint = "";
-    if (!appState.e_nfa_to_dfa_used && appState.is_pressed_convert) {
-      appState.e_nfa_to_dfa_used = true;
-      e_nfa_to_dfa_hint = `\nHere is the converted DFA transition for the e-NFA ${appState.latest_input_e_nfa || ''}:\n${appState.e_nfa_to_dfa_transition || ''}`;
+    if (!currentAppState.e_nfa_to_dfa_used && currentAppState.is_pressed_convert) {
+      currentAppState.e_nfa_to_dfa_used = true; // Update currentAppState
+      e_nfa_to_dfa_hint = `\nHere is the converted DFA transition for the e-NFA ${currentAppState.latest_input_e_nfa || ''}:\n${currentAppState.e_nfa_to_dfa_transition || ''}`;
     }
 
     // Handle DFA to minimized DFA hint
     let dfa_to_minimized_dfa_hint = "";
-    if (!appState.dfa_to_minimized_dfa_used && appState.is_pressed_convert) {
-      appState.dfa_to_minimized_dfa_used = true;
-      dfa_to_minimized_dfa_hint = `\nHere is the minimized DFA transition for the given DFA ${appState.latest_input_dfa || ''}:\n${appState.dfa_to_minimized_dfa_transition || ''}`;
+    if (!currentAppState.dfa_to_minimized_dfa_used && currentAppState.is_pressed_convert) {
+      currentAppState.dfa_to_minimized_dfa_used = true; // Update currentAppState
+      dfa_to_minimized_dfa_hint = `\nHere is the minimized DFA transition for the given DFA ${currentAppState.latest_input_dfa || ''}:\n${currentAppState.dfa_to_minimized_dfa_transition || ''}`;
     }
 
     // Handle PDA hint
     let push_down_automata_hint = "";
-    if (!appState.pda_used && appState.is_pressed_convert) {
-      appState.pda_used = true;
-      push_down_automata_hint = `\nHere is the converted pda transitions for the given context free language string ${appState.latest_input_pda || ''}:\n${appState.pda_transition || ''}`;
+    if (!currentAppState.pda_used && currentAppState.is_pressed_convert) {
+      currentAppState.pda_used = true; // Update currentAppState
+      push_down_automata_hint = `\nHere is the converted pda transitions for the given context free language string ${currentAppState.latest_input_pda || ''}:\n${currentAppState.pda_transition || ''}`;
     }
 
-    const selected_model = appState.selected_model;
+    const selected_model = currentAppState.selected_model; // Use currentAppState
     let prompt;
 
     // Select the appropriate prompt template based on the selected model
@@ -87,7 +86,7 @@ export const setup_llm = (appState: AppState) => {
         messages: state.messages,
         regex_to_e_nfa_hint: regex_to_e_nfa_hint,
       });
-    } else if (selected_model?.name === "e_NFA-to-DFA") {
+    } else if (selected_model?.name === "ε-NFA-to-DFA") { // Fixed the name matching
       prompt = await e_nfa_to_dfa_prompt_template.invoke({
         messages: state.messages,
         e_nfa_to_dfa_hint: e_nfa_to_dfa_hint,
@@ -108,13 +107,12 @@ export const setup_llm = (appState: AppState) => {
     const response = await llm.invoke(prompt);
 
     // Reset the is_pressed_convert flag
-    if (appState.is_pressed_convert) {
-      appState.is_pressed_convert = false;
+    if (currentAppState.is_pressed_convert) {
+      currentAppState.is_pressed_convert = false; // Update currentAppState
     }
 
     return { messages: response };
   };
-
 
   // Define a new graph
   const workflow = new StateGraph(MessagesAnnotation)
