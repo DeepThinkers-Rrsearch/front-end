@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, JSX } from "react";
 import Link from "next/link";
 import {
   PDAStack,
@@ -14,6 +14,7 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
 import { Eye, Plus } from "lucide-react";
+import { useAppStore } from "../../utils/store";
 
 interface Message {
   id: string;
@@ -84,6 +85,18 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // access the store
+  const {
+    setLatestInputRegex,
+    setLatestInputENfa,
+    setLatestInputDfa,
+    setLatestInputPda,
+    setRegexToENfaTransition,
+    setENfaToDfaTransition,
+    setDfaToMinimizedDfaTransition,
+    setPdaTransition,
+  } = useAppStore();
+
   // useEffect(() => {
   //   scrollToBottom();
   // }, [messages]);
@@ -91,6 +104,26 @@ export default function ChatPage() {
   useEffect(() => {
     setModelInput(""); // clear model input when model changes
   }, [selectedModel]);
+
+  useEffect(() => {
+    //set the converted transition values
+    switch (selectedModel) {
+      case "DFA-Minimization":
+        setDfaToMinimizedDfaTransition(convertResult);
+        break;
+      case "Regex-to-ε-NFA":
+        setRegexToENfaTransition(convertResult);
+        break;
+      case "ε-NFA-to-DFA":
+        setENfaToDfaTransition(convertResult);
+        break;
+      case "PDA":
+        setPdaTransition(convertResult);
+        break;
+      default:
+        break;
+    }
+  }, [convertResult]);
 
   const getModelPlaceholder = (model: ModelType) => {
     switch (model) {
@@ -111,6 +144,24 @@ export default function ChatPage() {
     if (!modelInput.trim() || isConverting) return;
     setIsConverting(true);
     setConvertResult("");
+
+    // Update the latest value
+    switch (selectedModel) {
+      case "DFA-Minimization":
+        setLatestInputDfa(modelInput);
+        break;
+      case "Regex-to-ε-NFA":
+        setLatestInputRegex(modelInput);
+        break;
+      case "ε-NFA-to-DFA":
+        setLatestInputENfa(modelInput);
+        break;
+      case "PDA":
+        setLatestInputPda(modelInput);
+        break;
+      default:
+        break;
+    }
 
     try {
       // Demo API call - replace with actual API endpoint
@@ -174,6 +225,79 @@ export default function ChatPage() {
     }
   };
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!inputValue.trim() || isLoading) return;
+
+  //   const userMessage: Message = {
+  //     id: Date.now().toString(),
+  //     content: inputValue,
+  //     role: "user",
+  //     timestamp: new Date(),
+  //   };
+
+  //   console.log("crown",inputValue);
+
+  //   setMessages((prev) => [...prev, userMessage]);
+  //   setInputValue("");
+  //   setIsLoading(true);
+
+  //   try {
+  //     // Prepare messages in LangGraph format
+  //     const langGraphMessages = [...messages, userMessage].map((msg) => ({
+  //       role: msg.role,
+  //       content: msg.content,
+  //     }));
+
+  //     console.log("hen",convertResult,langGraphMessages);
+
+  //     // Call the API
+  //     const response = await fetch("/api/chat", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         messages: langGraphMessages,
+  //         context: {
+  //           selectedModel,
+  //           lastConversion: convertResult,
+  //         },
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error(`API error: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+
+  //     console.log("Hava",data);
+  //     const aiMessage: Message = {
+  //       id: (Date.now() + 1).toString(),
+  //       content: data.content,
+  //       role: "assistant",
+  //       timestamp: new Date(),
+  //     };
+
+  //     setMessages((prev) => [...prev, aiMessage]);
+  //   } catch (error) {
+  //     console.error("Failed to get AI response:", error);
+
+  //     // Fallback error message
+  //     const errorMessage: Message = {
+  //       id: (Date.now() + 1).toString(),
+  //       content:
+  //         "Sorry, I'm having trouble responding right now. Please try again. You can still use the conversion models on the left sidebar.",
+  //       role: "assistant",
+  //       timestamp: new Date(),
+  //     };
+  //     setMessages((prev) => [...prev, errorMessage]);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
@@ -196,7 +320,10 @@ export default function ChatPage() {
         content: msg.content,
       }));
 
-      // Call the API
+      // Get current Zustand store state
+      const storeState = useAppStore.getState();
+
+      // Pass the store state to backend
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -207,6 +334,26 @@ export default function ChatPage() {
           context: {
             selectedModel,
             lastConversion: convertResult,
+          },
+          // Send the entire Zustand store state
+          appState: {
+            regex_to_e_nfa_used: storeState.regex_to_e_nfa_used,
+            e_nfa_to_dfa_used: storeState.e_nfa_to_dfa_used,
+            dfa_to_minimized_dfa_used: storeState.dfa_to_minimized_dfa_used,
+            pda_used: storeState.pda_used,
+            is_pressed_convert: convertResult
+              ? true
+              : storeState.is_pressed_convert,
+            latest_input_regex: storeState.latest_input_regex,
+            latest_input_e_nfa: storeState.latest_input_e_nfa,
+            latest_input_dfa: storeState.latest_input_dfa,
+            latest_input_pda: storeState.latest_input_pda,
+            regex_to_e_nfa_transition: storeState.regex_to_e_nfa_transition,
+            e_nfa_to_dfa_transition: storeState.e_nfa_to_dfa_transition,
+            dfa_to_minimized_dfa_transition:
+              storeState.dfa_to_minimized_dfa_transition,
+            pda_transition: storeState.pda_transition,
+            selected_model: { name: selectedModel },
           },
         }),
       });
@@ -228,7 +375,6 @@ export default function ChatPage() {
     } catch (error) {
       console.error("Failed to get AI response:", error);
 
-      // Fallback error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content:
@@ -247,6 +393,7 @@ export default function ChatPage() {
   };
 
   const conversionHistoryExtractor = (): Array<StackItem> => {
+    console.log("butterfly effect", selectedModel);
     switch (selectedModel) {
       case "DFA-Minimization":
         return DFA_MINI_Stack_Instance.getStack();
@@ -293,6 +440,26 @@ export default function ChatPage() {
     setIsSimulatingModelOpen(true);
   };
 
+  const graphRenderHandler = (): JSX.Element => {
+    switch (selectedModel) {
+      case "DFA-Minimization":
+        return <></>;
+      case "Regex-to-ε-NFA":
+        return <></>;
+      case "ε-NFA-to-DFA":
+        return <></>;
+      case "PDA":
+        return (
+          <PDAGraphRenderer
+            transitionString={convertResult}
+            highlightCount={highlightCount}
+          />
+        );
+      default:
+        return <></>;
+    }
+  };
+
   const simulateBackward = () => {
     if (highlightCount >= 1) {
       setHighlightCount(highlightCount - 1);
@@ -300,19 +467,28 @@ export default function ChatPage() {
   };
 
   const simulateForward = () => {
-    setHighlightCount(highlightCount + 1);
+    const count = convertResult
+      .split("\n")
+      .filter((line) => line.trim() !== "").length;
+    if (count > highlightCount) {
+      setHighlightCount(highlightCount + 1);
+    }
   };
 
   const onClose = () => {
     setIsSimulatingModelOpen(false);
   };
 
+  //---------------------
+  console.log("Butterfly", PDA_Stack_Instance.getStack());
+
   return (
-    <div className="min-h-screen light-yellow-bg">
+    <div className="flex min-h-screen light-yellow-bg">
       {/* <div className="flex max-w-7xl mx-auto"> */}
       <div className="flex w-full">
         {/* Left Sidebar - Model Selection */}
-        <div className="hidden lg:block w-80 bg-white border-r border-yellow-200 min-h-screen">
+        {/* <div className="hidden lg:block w-80 bg-white border-r border-yellow-200 min-h-screen"> */}
+        <div className="w-2/9 bg-white border-r border-yellow-400 min-h-screen">
           <div className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Conversion Models
@@ -399,10 +575,10 @@ export default function ChatPage() {
                   📄 View Conversion History
                 </button>
                 <button
-                  className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]"
+                  className="flex items-center gap-2 text-sm bg-yellow-200 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-400 transition-colors w-[200px]"
                   onClick={simulationModelHandler}
                 >
-                  Simulate
+                  <span className="mr-8">▶️</span> Simulate
                 </button>
                 <Link
                   href="/instructions"
@@ -416,7 +592,8 @@ export default function ChatPage() {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 px-4 py-6">
+        {/* <div className="flex-1 px-4 py-6"> */}
+        <div className="w-4/9 px-4 py-6 overflow-y-auto">
           <div className="space-y-4 mb-24">
             {(selectedModel === MODELS.DFA_MINIMIZATION ||
               selectedModel === MODELS.E_NFA_TO_DFA) && (
@@ -516,7 +693,7 @@ export default function ChatPage() {
             {/* Add text input popup window */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md h-[70vh] overflow-hidden flex flex-col">
+                <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md h-[80vh] overflow-hidden flex flex-col">
                   {/* Title */}
                   <h2 className="text-lg font-semibold text-yellow-600 mb-4">
                     Create Automata Input
@@ -710,9 +887,16 @@ export default function ChatPage() {
                 </div>
               </div>
             )}
-            {/* Messaging interface */}
-            <div className="flex flex-col">
-              <div className="h-[250px] overflow-y-auto border-t border-yellow-300 px-4 py-6 scroll-smooth">
+          </div>
+        </div>
+        {/* Messaging interface */}
+        <div className="w-3/9 border-l border-yellow-400 px-2 py-4 overflow-y-auto">
+          <div className="h-full flex flex-col gap-3">
+            <div className="font-semibold text-yellow-600 border-b border-yellow-200 pb-0">
+              Messaging
+            </div>
+            <div className="h-[520px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth">
+              <div className="flex flex-col gap-y-2">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -726,7 +910,7 @@ export default function ChatPage() {
                         message.role === "user"
                           ? "flex-row-reverse"
                           : "flex-row"
-                      } items-start space-x-3`}
+                      } items-start space-x-2`}
                     >
                       {/* Avatar section stays the same */}
                       <div
@@ -751,7 +935,7 @@ export default function ChatPage() {
 
                       {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
                       <div
-                        className={`rounded-2xl px-4 py-3 ${
+                        className={`rounded-2xl px-4 py-1 ${
                           // ← REMOVE max-w-xs lg:max-w-md from here
                           message.role === "user"
                             ? "chat-bubble-user"
@@ -912,74 +1096,72 @@ export default function ChatPage() {
                     </div>
                   </div>
                 ))}
-
-                {/* Loading Message */}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">SF</span>
-                      </div>
-                      <div className="chat-bubble-ai rounded-2xl px-4 py-3">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.1s" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.2s" }}
-                          ></div>
-                        </div>
+              </div>
+              {/* Loading Message */}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-xs">SF</span>
+                    </div>
+                    <div className="chat-bubble-ai rounded-2xl px-4 py-3">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                <div ref={messagesEndRef} />
-              </div>
+              <div ref={messagesEndRef} />
             </div>
           </div>
-        </div>
-      </div>
-      {/* Chat Input */}
-      <div className="fixed bottom-0 left-80 right-0 bg-white border-t border-yellow-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <form onSubmit={handleSubmit} className="flex space-x-4">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask about automata theory, conversions, or get help with your results..."
-                className="w-full px-4 py-3 pr-12 border border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent light-yellow-bg"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={!inputValue.trim() || isLoading}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <svg
-                  className="w-4 h-4 text-gray-900"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-              </button>
-            </div>
-          </form>
 
-          {/* Input Suggestions */}
-          <div className="mt-3 flex flex-wrap gap-2">
+          {/* Chat Input */}
+          <div className="fixed bottom-0 right-0 w-[506px] bg-white border-t border-yellow-200">
+            <div className="w-full px-4 py-4">
+              <form onSubmit={handleSubmit} className="flex space-x-4">
+                <div className="flex-1 relative">
+                  <textarea
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Ask about automata theory, conversions, or get help with your results..."
+                    rows={2}
+                    className="w-full px-4 py-3 pr-12 border border-yellow-200 rounded-xl resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent light-yellow-bg"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!inputValue.trim() || isLoading}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <svg
+                      className="w-4 h-4 text-gray-900"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </form>
+
+              {/* Input Suggestions */}
+              {/* <div className="mt-3 flex flex-wrap gap-2">
             <button
               onClick={() =>
                 setInputValue("Explain how DFA minimization works")
@@ -1008,10 +1190,11 @@ export default function ChatPage() {
             >
               Explain my conversion result
             </button>
+          </div> */}
+            </div>
           </div>
         </div>
       </div>
-
       {/* Conversion History Model */}
       {isConversionHistoryOpen && (
         <div
@@ -1033,7 +1216,7 @@ export default function ChatPage() {
               &times;
             </button>
             <h1 className="text-2xl font-semibold mb-4">Conversion History</h1>
-            {conversions?.map((conversion, key) => (
+            {conversionHistoryExtractor()?.map((conversion, key) => (
               <div
                 key={key + 1}
                 className="mb-6 border border-gray-300 rounded-lg bg-[#FFF8DE] p-4 shadow"
@@ -1046,7 +1229,7 @@ export default function ChatPage() {
                     Context-Free Input String:{" "}
                   </span>
                   <span className="bg-green-100 px-2 py-1 rounded text-sm font-mono">
-                    {conversion.input}
+                    {conversion.string}
                   </span>
                 </p>
                 <p className="font-semibold mb-1">Conversion Result:</p>
@@ -1056,7 +1239,7 @@ export default function ChatPage() {
                       {line}
                     </div>
                   ))} */}
-                  {conversion?.result}
+                  {conversion?.conversion}
                 </div>
               </div>
             ))}
@@ -1078,17 +1261,36 @@ export default function ChatPage() {
 
             {/* Modal Content */}
             <div className="p-6">
-              <div className="mb-6">
-                <PDAGraphRenderer
-                  transitionString={`delta(q0, a, Z) -> (q0, PUSH)
-delta(q0, a, A) -> (q0, PUSH)
-delta(q0, b, A) -> (q1, POP)
-delta(q1, b, A) -> (q1, POP)
-delta(q1, ε, Z) -> (qf, NOOP)`}
-                  highlightCount={highlightCount}
-                />
+              <div>
+                <h1 className="text-2xl font-bold text-[#FFD700] mb-2 tracking-wide">{`${selectedModel} Simulating...`}</h1>
               </div>
-
+              <br />
+              <div className="mb-6">
+                {convertResult != "" ? (
+                  graphRenderHandler()
+                ) : (
+                  <p>Please perform an automata process first!!!</p>
+                )}
+              </div>
+              <div>
+                <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">
+                  Input Value:{" "}
+                </p>
+                {selectedModel == "PDA" ? (
+                  <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                    {modelInput}
+                    {/* {modelInput.split('').map((char, index) => (
+                    <span
+                      key={index}
+                      style={{ color: index < highlightCount ? '#FFD700' : '#000' }}
+                    >
+                      {char}
+                    </span>
+                  ))} */}
+                  </p>
+                ) : null}
+              </div>
+              <br />
               {/* Action Buttons */}
               <div className="flex justify-between">
                 <button

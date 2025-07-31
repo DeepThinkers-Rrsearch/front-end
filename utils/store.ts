@@ -15,7 +15,7 @@ interface AppState {
   e_nfa_to_dfa_transition?: string;
   dfa_to_minimized_dfa_transition?: string;
   pda_transition?: string;
-  selected_model?: string;
+  selectedModel?: string;
   // Actions
   setRegexToENfaUsed: (used: boolean) => void;
   setENfaToDfaUsed: (used: boolean) => void;
@@ -69,7 +69,7 @@ export const useAppStore = create<AppState>((set) => ({
   setDfaToMinimizedDfaTransition: (transition) =>
     set({ dfa_to_minimized_dfa_transition: transition }),
   setPdaTransition: (transition) => set({ pda_transition: transition }),
-  setSelectedModel: (model: string) => set({ selected_model: model }),
+  setSelectedModel: (model: string) => set({ selectedModel: model }),
   resetState: () =>
     set({
       regex_to_e_nfa_used: false,
@@ -85,7 +85,7 @@ export const useAppStore = create<AppState>((set) => ({
       e_nfa_to_dfa_transition: "",
       dfa_to_minimized_dfa_transition: "",
       pda_transition: "",
-      selected_model: "DFA-Minimization",
+      selectedModel: "DFA-Minimization",
     }),
 }));
 
