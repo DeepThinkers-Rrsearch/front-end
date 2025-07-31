@@ -27,7 +27,7 @@ type StackItem = {
 const MODELS = {
   DFA_MINIMIZATION: "DFA-Minimization",
   REGEX_TO_E_NFA: "Regex-to-ε-NFA",
-  E_NFA_TO_DFA: "ε-NFA-to-DFA",
+  E_NFA_TO_DFA: "e_NFA-to-DFA",
   PDA: "PDA",
 } as const;
 
@@ -105,7 +105,7 @@ export default function ChatPage() {
       case "Regex-to-ε-NFA":
         setRegexToENfaTransition(convertResult);
         break;
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         setENfaToDfaTransition(convertResult);
         break;
       case "PDA":
@@ -145,7 +145,7 @@ export default function ChatPage() {
       case "Regex-to-ε-NFA":
         setLatestInputRegex(modelInput);
         break;
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         setLatestInputENfa(modelInput);
         break;
       case "PDA":
@@ -183,7 +183,7 @@ export default function ChatPage() {
         case "Regex-to-ε-NFA":
           REGEX_Stack_Instance.push(inputValue, data.result)
           break;
-        case "ε-NFA-to-DFA":
+        case "e_NFA-to-DFA":
           E_NFA_Stack_Instance.push(inputValue, data.result)
           break;
         case "PDA":
@@ -388,7 +388,7 @@ export default function ChatPage() {
         return DFA_MINI_Stack_Instance.getStack()
       case "Regex-to-ε-NFA":
         return REGEX_Stack_Instance.getStack()
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         return E_NFA_Stack_Instance.getStack()
       case "PDA":
         return PDA_Stack_Instance.getStack();
@@ -422,7 +422,7 @@ export default function ChatPage() {
         return <></>
       case "Regex-to-ε-NFA":
         return <></>
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         return <></>
       case "PDA":
         return (
