@@ -8,8 +8,10 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Eye, Plus } from "lucide-react";
+import { Eye, Plus, CheckCircle } from "lucide-react";
 import { useAppStore } from '../../utils/store';
+import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
+import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
 
 interface Message {
   id: string;
@@ -86,6 +88,10 @@ export default function ChatPage() {
 
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState<React.ReactNode>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -110,6 +116,17 @@ export default function ChatPage() {
   useEffect(() => {
     setModelInput(""); // clear model input when model changes
   }, [selectedModel]);
+
+useEffect(() => {
+  setUploadedImage(null);         
+  setSuccessMessage("");          
+  setModelInput("");              
+
+  // Reset the actual file input field
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";  // 🔁 Clears selected file name
+  }
+}, [selectedModel]);
 
   useEffect(() => {
     //set the converted transition values
@@ -498,6 +515,36 @@ export default function ChatPage() {
     setIsSimulatingModelOpen(false)
   }
 
+const handleExtract = async (file: File) => {
+  try {
+    setIsExtracting(true);
+    setSuccessMessage(""); // Clear old success messages
+
+    let text = "";
+
+    if (selectedModel === MODELS.DFA_MINIMIZATION) {
+      text = await extract_dfa_text_from_image(file);
+    } else if (selectedModel === MODELS.E_NFA_TO_DFA) {
+      text = await extractEpsilonNfaTextFromImage(file);
+    } else {
+      throw new Error("Unsupported model for image extraction.");
+    }
+
+    setModelInput(text);
+    // setSuccessMessage("✅ Text extracted successfully");
+    setSuccessMessage(
+  <div className="flex items-center gap-2">
+    <CheckCircle className="w-4 h-4 text-green-600" />
+    <span>Text extracted successfully</span>
+  </div>
+);
+  } catch (err) {
+    console.error("Extraction failed", err);
+    alert("Failed to extract text from image.");
+  } finally {
+    setIsExtracting(false);
+  }
+};
 
   return (
     <div className="flex min-h-screen light-yellow-bg">
@@ -629,10 +676,15 @@ export default function ChatPage() {
                 <div className="flex flex-col gap-2">
                   <input
                     type="file"
+                    ref={fileInputRef}
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      setUploadedImage(file || null);
+                      // setUploadedImage(file || null);
+                      if (file) {
+                      setUploadedImage(file);
+                      handleExtract(file);
+                    }
                       setShowPreview(false); // Reset preview
                     }}
                     className="block text-sm text-gray-700 
@@ -662,6 +714,11 @@ export default function ChatPage() {
                 )}
               </div>
             )}
+              {successMessage && (
+                <div className="w-54 text-green-800 bg-green-100 border border-green-500 text-sm mt-1 px-3 py-2 rounded-md">
+                  {successMessage}
+                </div>
+              )}
 
             {/* Model Text Input Field */}
             <div className="space-y-4">
