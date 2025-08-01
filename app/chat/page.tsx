@@ -799,7 +799,7 @@ const handleExtract = async (file: File) => {
                     highlightCount={highlightCount}
                   />
                 )}
-                {selectedModel === "ε-NFA-to-DFA" && (
+                {selectedModel === "e_NFA-to-DFA" && (
                   <DFAGraphRenderer
                     dfaString={convertResult}
                     highlightCount={highlightCount}
@@ -1348,7 +1348,7 @@ const handleExtract = async (file: File) => {
               </div>
               <div>
                 <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">Input Value: </p>
-                {selectedModel == "PDA" || selectedModel == "DFA-Minimization" || selectedModel== "Regex-to-ε-NFA" || selectedModel == "ε-NFA-to-DFA"? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                {selectedModel == "PDA" || selectedModel == "DFA-Minimization" || selectedModel== "Regex-to-ε-NFA" || selectedModel == "e_NFA-to-DFA"? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
                   {modelInput}
                   {/* {modelInput.split('').map((char, index) => (
                     <span
