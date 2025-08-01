@@ -609,6 +609,14 @@ const parseModelInput = (input: string) => {
 
   const parsed = parseModelInput(modelInput);
 
+  const MODEL_DISPLAY_NAMES: Record<ModelType, string> = {
+  [MODELS.DFA_MINIMIZATION]: "DFA-Minimization",
+  [MODELS.REGEX_TO_E_NFA]: "Regex-to-ε-NFA",
+  [MODELS.E_NFA_TO_DFA]: "ε-NFA-to-DFA",
+  [MODELS.PDA]: "PDA",
+};
+
+
   return (
     <div className="flex min-h-screen light-yellow-bg">
       {/* <div className="flex max-w-7xl mx-auto"> */}
@@ -654,7 +662,8 @@ const parseModelInput = (input: string) => {
                       <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
                     )}
                   </div>
-                  <span className="text-sm font-medium">{model}</span>
+                  {/* <span className="text-sm font-medium">{model}</span> */}
+                  <span className="text-sm font-medium">{MODEL_DISPLAY_NAMES[model]}</span>
                 </label>
               ))}
             </div>
@@ -776,7 +785,8 @@ const parseModelInput = (input: string) => {
             {/* Model Text Input Field */}
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">
-                Input for {selectedModel}
+                {/* Input for {selectedModel} */}
+                Input for {MODEL_DISPLAY_NAMES[selectedModel]}
               </label>
               <div className="space-y-2">
                 <textarea
