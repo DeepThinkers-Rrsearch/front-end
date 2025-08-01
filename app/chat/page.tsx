@@ -3,12 +3,12 @@
 import { useState, useRef, useEffect, JSX } from "react";
 import Link from "next/link";
 import { PDAStack, DFA_MINI_Stack, E_NFA_Stack, REGEX_Stack } from "../../utils/stacks/index"
-import { PDAGraphRenderer } from "../../utils/graph_renderer/index"
+import { DFAGraphRenderer, ENFAGraphRenderer, MinimizedDFAGraphRenderer, PDAGraphRenderer } from "../../utils/graph_renderer/index"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Eye, Plus, CheckCircle } from "lucide-react";
+import { Copy, Eye, Plus, CheckCircle } from "lucide-react";
 import { useAppStore } from '../../utils/store';
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
@@ -478,11 +478,26 @@ useEffect(() => {
   const graphRenderHandler = (): JSX.Element => {
     switch (selectedModel) {
       case "DFA-Minimization":
-        return <></>
+        return (
+          <MinimizedDFAGraphRenderer
+            minimizedDfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        );
       case "Regex-to-ε-NFA":
-        return <></>
+        return (
+          <ENFAGraphRenderer
+            enfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        )
       case "e_NFA-to-DFA":
-        return <></>
+        return (
+          <DFAGraphRenderer
+            dfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        )
       case "PDA":
         return (
           <PDAGraphRenderer
@@ -593,19 +608,7 @@ const handleExtract = async (file: File) => {
                 </label>
               ))}
             </div>
-            {/* Conversion Result */}
-            {convertResult && (
-              <div className="mt-4 space-y-2">
-                <h4 className="text-md font-medium text-gray-900">
-                  Conversion Result
-                </h4>
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
-                    {convertResult}
-                  </pre>
-                </div>
-              </div>
-            )}
+
 
             {/* Selected Model Info */}
             {/* <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -751,6 +754,60 @@ const handleExtract = async (file: File) => {
                 </div>
               </div>
             </div>
+            {/* Conversion Result */}
+            {convertResult && (
+              <div className="mt-4 space-y-2">
+                <h4 className="text-md font-medium text-gray-900">Conversion Result</h4>
+                <div className="relative">
+                <button
+                  onClick={() => navigator.clipboard.writeText(convertResult)}
+                  className="absolute top-2 right-2 text-green-700 bg-green-100 border border-green-300 rounded p-1 hover:bg-green-200"
+                  title="Copy to clipboard"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
+                    <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
+                      {convertResult}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {convertResult && (
+            <div className="mt-8 space-y-2">
+              <h4 className="text-md font-medium text-gray-900">Generated Graph</h4>
+              <div>
+                {selectedModel === "PDA" && (
+                  <PDAGraphRenderer
+                    transitionString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+
+                {selectedModel === "DFA-Minimization" && (
+                  <MinimizedDFAGraphRenderer
+                    minimizedDfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+                {selectedModel === "Regex-to-ε-NFA" && (
+                  <ENFAGraphRenderer
+                    enfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+                {selectedModel === "e_NFA-to-DFA" && (
+                  <DFAGraphRenderer
+                    dfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+              </div>
+            </div>
+          )}
             {/* Add text input popup window */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -1291,7 +1348,7 @@ const handleExtract = async (file: File) => {
               </div>
               <div>
                 <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">Input Value: </p>
-                {selectedModel == "PDA" ? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                {selectedModel == "PDA" || selectedModel == "DFA-Minimization" || selectedModel== "Regex-to-ε-NFA" || selectedModel == "e_NFA-to-DFA"? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
                   {modelInput}
                   {/* {modelInput.split('').map((char, index) => (
                     <span
@@ -1302,6 +1359,11 @@ const handleExtract = async (file: File) => {
                     </span>
                   ))} */}
                 </p> : null}
+                {/* {selectedModel === "PDA" || selectedModel === "DFA-Minimization" ? (
+                  <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                    {modelInput}
+                  </p>
+                ) : null} */}
               </div>
               <br />
               {/* Action Buttons */}
