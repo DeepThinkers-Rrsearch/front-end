@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Copy, Eye, Plus, CheckCircle, User, Bot, Trash2 } from "lucide-react";
+import { Copy, Eye, Plus, CheckCircle, User, Bot, Trash2, FileText, Play, BookOpen} from "lucide-react";
 import { useAppStore } from '../../utils/store';
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
@@ -691,19 +691,23 @@ const parseModelInput = (input: string) => {
             </div> */}
 
             <div className="mt-9 pt-6 border-t border-gray-200">
-              <h4 className="font-medium text-gray-900 mb-2 text-center">Quick Actions</h4>
+              <h4 className="font-medium text-gray-900 mb-4 text-center">Quick Actions</h4>
               <div className="flex flex-col items-center gap-2">
-                <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={conversionHistoryHandler}>
-                  📄 View Conversion History
-                </button>
-                <button className="flex items-center gap-2 text-sm bg-yellow-200 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-400 transition-colors w-[200px]" onClick={simulationModelHandler}>
-                  <span className="mr-8">▶️</span> Simulate
-                </button>
+              
+              <button
+                onClick={conversionHistoryHandler}
+                className="flex items-center rounded-full px-3 gap-1 text-sm font-medium bg-yellow-50 text-yellow-800 px-4 py-2 rounded-xl border border-yellow-300 hover:bg-yellow-200 transition-colors w-[220px] shadow-sm hover:shadow-md"
+              >
+                <FileText className="w-5 h-5 text-yellow-600" />
+                View Conversion History
+              </button>
+
                 <Link
                   href="/instructions"
-                  className="flex items-center gap-2 text-sm bg-yellow-400 text-white px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-500 transition-colors w-[200px]"
+                  className="flex items-center rounded-full px-3 gap-3 text-sm font-medium bg-yellow-500 text-white px-4 py-2 rounded-xl border border-yellow-400 hover:bg-yellow-600 transition-colors w-[220px] shadow-sm hover:shadow-md"
                 >
-                  <span className="mr-1">📘</span> View Documentation
+                  <BookOpen className="w-5 h-5 text-white" />
+                  View Documentation
                 </Link>
               </div>
             </div>
@@ -901,6 +905,23 @@ const parseModelInput = (input: string) => {
                   />
                 )}
               </div>
+              <div className="flex justify-end mt-4">
+              <button
+              onClick={simulationModelHandler}
+              className="group relative overflow-hidden flex items-center justify-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl border border-yellow-400 bg-gradient-to-tr from-yellow-200 via-yellow-100 to-amber-100 text-yellow-800 shadow-sm w-[130px] transition-all duration-300 ease-in-out hover:scale-[1.04] hover:shadow-yellow-400/40 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            >
+              {/* Shimmering light overlay */}
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow/60 to-transparent opacity-0 group-hover:opacity-60 group-hover:animate-shimmer pointer-events-none" />
+
+              {/* Play icon with hover pulse */}
+              <Play className="w-5 h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900" />
+
+              Simulate
+
+              {/* Bottom bar shine */}
+              <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" />
+            </button>
+             </div>
             </div>
           )}
             {/* Add text input popup window */}
