@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Copy, Eye, Plus, CheckCircle } from "lucide-react";
+import { Copy, Eye, Plus, CheckCircle, User, Bot, Trash2 } from "lucide-react";
 import { useAppStore } from '../../utils/store';
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
@@ -436,6 +436,12 @@ useEffect(() => {
     } finally {
       setIsLoading(false);
     }
+    
+    // Scroll after adding user message
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+
   };
 
   const conversionHistoryHandler = () => {
@@ -687,9 +693,6 @@ const parseModelInput = (input: string) => {
             <div className="mt-9 pt-6 border-t border-gray-200">
               <h4 className="font-medium text-gray-900 mb-2 text-center">Quick Actions</h4>
               <div className="flex flex-col items-center gap-2">
-                <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]" onClick={clearChatHistoryHandler}>
-                  <span className="mr-1">🧹</span> Clear Chat History
-                </button>
                 <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={conversionHistoryHandler}>
                   📄 View Conversion History
                 </button>
@@ -1088,179 +1091,314 @@ const parseModelInput = (input: string) => {
         </div>
         {/* Messaging interface */}
         <div className="w-3/9 border-l border-yellow-400 px-2 py-4 overflow-y-auto">
-          <div className="h-full flex flex-col gap-3">
-            <div className="font-semibold text-yellow-600 border-b border-yellow-200 pb-0">
-              Messaging
+          <div className=" flex flex-col gap-3">
+            <div className="flex justify-between items-center pb-0">
+              <div className="font-semibold text-yellow-600">Messaging</div>
+              <button
+              onClick={clearChatHistoryHandler}
+              className="flex items-center gap-2 text-sm text-yellow-800 bg-gray-100 border border-yellow-400 rounded-md px-2 py-1 hover:bg-gray-200 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear
+            </button>
             </div>
-            <div className="h-[520px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth scroll-hidden">
+            <div className="h-[480px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth scroll-hidden">
               <div className="flex flex-col gap-y-2">
                 {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
-                      }`}
-                  >
-                    <div
-                      className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${  // ← UPDATE THIS LINE
-                        message.role === "user" ? "flex-row-reverse" : "flex-row"
-                        } items-start space-x-2`}
-                    >
-                      {/* Avatar section stays the same */}
-                      <div
-                        className={`flex-shrink-0 ${message.role === "user" ? "ml-3" : "mr-3"
-                          }`}
-                      >
-                        {message.role === "assistant" ? (
-                          <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">SF</span>
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">U</span>
-                          </div>
-                        )}
-                      </div>
+                  // <div
+                  //   key={message.id}
+                  //   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                  //     }`}
+                  // >
+                  //   <div
+                  //     className={`flex ${  // ← UPDATE THIS LINE
+                  //       message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  //       } items-start space-x-2`}
+                  //   >
+                  //     {/* Avatar section stays the same */}
+                  //     <div
+                  //       className={`flex-shrink-0 ${message.role === "user" ? "ml-3" : "mr-3"
+                  //         }`}
+                  //     >
+                  //       {message.role === "assistant" ? (
+                  //         <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                  //           <span className="text-white font-bold text-xs">SF</span>
+                  //         </div>
+                  //       ) : (
+                  //         <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                  //           <span className="text-white font-bold text-xs">U</span>
+                  //         </div>
+                  //       )}
+                  //     </div>
 
-                      {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
-                      <div
-                        className={`rounded-2xl px-4 py-1 ${  // ← REMOVE max-w-xs lg:max-w-md from here
-                          message.role === "user"
-                            ? "chat-bubble-user"
-                            : "chat-bubble-ai"
-                          }`}
-                      >
-                        {/* REPLACE the existing content section with: */}
-                        <div className="overflow-hidden">
-                          <div
-                            className={`prose prose-sm max-w-none break-words leading-relaxed ${message.role === "user"
-                              ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
-                              : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
-                              } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
-                          >
-                            {/* <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeHighlight]}
-                        components={{
-                          pre: ({ children, ...props }) => (
-                            <pre 
-                              {...props} 
-                              className="overflow-x-auto max-w-full whitespace-pre-wrap break-words text-xs leading-relaxed bg-gray-100 p-3 rounded-md"
-                            >
-                              {children}
-                            </pre>
-                          ),
-                          code: ({ children, className, ...props }) => {
-                            // Check if it's inline code by looking at className
-                            const isInline = !className || !className.includes('language-');
+                  //     {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
+                  //     {/* <div
+                  //       className={`rounded-2xl px-4 py-1 ${  // ← REMOVE max-w-xs lg:max-w-md from here
+                  //         message.role === "user"
+                  //           ? "chat-bubble-user"
+                  //           : "chat-bubble-ai"
+                  //         }`}
+                  //     > */}
+                  //     <div
+                  //       className={`rounded-2xl px-4 py-1 ${
+                  //         message.role === "user"
+                  //           ? "chat-bubble-user max-w-[90%]"
+                  //           : "chat-bubble-ai w-[480px] max-w-full"
+                  //       }`}
+                  //     >
+
+                  //       {/* REPLACE the existing content section with: */}
+                  //       <div className="overflow-hidden">
+                  //         <div
+                  //           className={`prose prose-sm max-w-none break-words leading-relaxed ${message.role === "user"
+                  //             ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                  //             : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                  //             } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                  //         >
+                  //           {/* <ReactMarkdown
+                  //       remarkPlugins={[remarkGfm]}
+                  //       rehypePlugins={[rehypeHighlight]}
+                  //       components={{
+                  //         pre: ({ children, ...props }) => (
+                  //           <pre 
+                  //             {...props} 
+                  //             className="overflow-x-auto max-w-full whitespace-pre-wrap break-words text-xs leading-relaxed bg-gray-100 p-3 rounded-md"
+                  //           >
+                  //             {children}
+                  //           </pre>
+                  //         ),
+                  //         code: ({ children, className, ...props }) => {
+                  //           // Check if it's inline code by looking at className
+                  //           const isInline = !className || !className.includes('language-');
                             
-                            if (isInline) {
-                              return (
-                                <code 
-                                  {...props} 
-                                  className="break-words bg-gray-200 px-1 py-0.5 rounded text-xs"
+                  //           if (isInline) {
+                  //             return (
+                  //               <code 
+                  //                 {...props} 
+                  //                 className="break-words bg-gray-200 px-1 py-0.5 rounded text-xs"
+                  //               >
+                  //                 {children}
+                  //               </code>
+                  //             );
+                  //           } else {
+                  //             return (
+                  //               <code 
+                  //                 {...props} 
+                  //                 className="block whitespace-pre-wrap break-words text-xs"
+                  //               >
+                  //                 {children}
+                  //               </code>
+                  //             );
+                  //           }
+                  //         }
+                  //       }}
+                  //     >
+                  //       {message.content ?? ""}
+                  //     </ReactMarkdown> */}
+                  //           <ReactMarkdown
+                  //             remarkPlugins={[remarkGfm]}
+                  //             rehypePlugins={[rehypeHighlight]}
+                  //             components={{
+                  //               pre: (props: any) => (
+                  //                 <div className="relative my-4">
+                  //                   <pre
+                  //                     className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${message.role === "user"
+                  //                       ? "bg-yellow-800 text-yellow-100 border-yellow-600"
+                  //                       : "bg-yellow-100 text-yellow-100 border-yellow-100"
+                  //                       }`}
+                  //                     style={{
+                  //                       fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                  //                     }}
+                  //                   >
+                  //                     {props.children}
+                  //                   </pre>
+                  //                   <button
+                  //                     className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                  //                     onClick={() => {
+                  //                       // Extract text content for copying
+                  //                       const extractText = (element: any): string => {
+                  //                         if (typeof element === 'string') return element;
+                  //                         if (Array.isArray(element)) return element.map(extractText).join('');
+                  //                         if (element?.props?.children) return extractText(element.props.children);
+                  //                         return '';
+                  //                       };
+                  //                       const codeText = extractText(props.children);
+                  //                       navigator.clipboard.writeText(codeText);
+                  //                     }}
+                  //                   >
+                  //                     Copy
+                  //                   </button>
+                  //                 </div>
+                  //               ),
+                  //               code: (props: any) => {
+                  //                 const isInline = !props.className || !props.className.includes('language-');
+
+                  //                 if (isInline) {
+                  //                   return (
+                  //                     <code
+                  //                       className={`px-1.5 py-0.5 rounded text-xs font-mono ${message.role === "user"
+                  //                         ? "bg-yellow-200 text-yellow-900"
+                  //                         : "bg-gray-200 text-gray-800"
+                  //                         }`}
+                  //                     >
+                  //                       {props.children}
+                  //                     </code>
+                  //                   );
+                  //                 } else {
+                  //                   return (
+                  //                     <code
+                  //                       className={`block whitespace-pre-wrap ${props.className || ''}`}
+                  //                       style={{
+                  //                         fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                  //                       }}
+                  //                     >
+                  //                       {props.children}
+                  //                     </code>
+                  //                   );
+                  //                 }
+                  //               }
+                  //             }}
+                  //           >
+                  //             {message.content ?? ""}
+                  //           </ReactMarkdown>
+                  //         </div>
+                  //       </div>
+
+                  //       {/* Timestamp stays the same */}
+                  //       <p
+                  //         className={`text-xs mt-1 ${message.role === "user"
+                  //           ? "text-yellow-100"
+                  //           : "text-gray-500"
+                  //           }`}
+                  //       >
+                  //         {message.timestamp.toLocaleTimeString([], {
+                  //           hour: "2-digit",
+                  //           minute: "2-digit",
+                  //         })}
+                  //       </p>
+                  //     </div>
+                  //   </div>
+                  // </div>
+                  <div
+                  key={message.id}
+                  className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"}`}
+                >
+                  {/* SF or U avatar on top */}
+                  <div className="mb-1">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        message.role === "assistant"
+                          ? "bg-gradient-to-br from-orange-400 to-orange-500"
+                          : "bg-gray-400"
+                      }`}
+                    >
+                      <span className="text-white font-bold text-xs">
+                        {/* {message.role === "assistant" ? "SF" : "U"} */}
+                        {message.role === "assistant" ? (
+                            <Bot className="w-4 h-4 text-white" />
+                          ) : (
+                            <User className="w-4 h-4 text-white" />
+                          )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Message bubble below */}
+                  <div
+                    className={`rounded-2xl px-4 py-1 ${
+                      message.role === "user"
+                        ? "chat-bubble-user max-w-[90%]"
+                        : "chat-bubble-ai w-[480px] max-w-full"
+                    }`}
+                  >
+                    {/* MARKDOWN MESSAGE RENDERING - UNCHANGED */}
+                    <div className="overflow-hidden">
+                      <div
+                        className={`prose prose-sm max-w-none break-words leading-relaxed ${
+                          message.role === "user"
+                            ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                            : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                        } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                      >
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                          components={{
+                            pre: (props: any) => (
+                              <div className="relative my-4">
+                                <pre
+                                  className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${
+                                    message.role === "user"
+                                      ? "bg-yellow-800 text-yellow-100 border-yellow-600"
+                                      : "bg-yellow-100 text-yellow-100 border-yellow-100"
+                                  }`}
+                                  style={{
+                                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                  }}
                                 >
-                                  {children}
+                                  {props.children}
+                                </pre>
+                                <button
+                                  className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                                  onClick={() => {
+                                    const extractText = (element: any): string => {
+                                      if (typeof element === 'string') return element;
+                                      if (Array.isArray(element)) return element.map(extractText).join('');
+                                      if (element?.props?.children) return extractText(element.props.children);
+                                      return '';
+                                    };
+                                    const codeText = extractText(props.children);
+                                    navigator.clipboard.writeText(codeText);
+                                  }}
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                            ),
+                            code: (props: any) => {
+                              const isInline = !props.className || !props.className.includes('language-');
+                              return isInline ? (
+                                <code
+                                  className={`px-1.5 py-0.5 rounded text-xs font-mono ${
+                                    message.role === "user"
+                                      ? "bg-yellow-200 text-yellow-900"
+                                      : "bg-gray-200 text-gray-800"
+                                  }`}
+                                >
+                                  {props.children}
                                 </code>
-                              );
-                            } else {
-                              return (
-                                <code 
-                                  {...props} 
-                                  className="block whitespace-pre-wrap break-words text-xs"
+                              ) : (
+                                <code
+                                  className={`block whitespace-pre-wrap ${props.className || ''}`}
+                                  style={{
+                                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                  }}
                                 >
-                                  {children}
+                                  {props.children}
                                 </code>
                               );
                             }
-                          }
-                        }}
-                      >
-                        {message.content ?? ""}
-                      </ReactMarkdown> */}
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                              rehypePlugins={[rehypeHighlight]}
-                              components={{
-                                pre: (props: any) => (
-                                  <div className="relative my-4">
-                                    <pre
-                                      className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${message.role === "user"
-                                        ? "bg-yellow-800 text-yellow-100 border-yellow-600"
-                                        : "bg-yellow-100 text-yellow-100 border-yellow-100"
-                                        }`}
-                                      style={{
-                                        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                                      }}
-                                    >
-                                      {props.children}
-                                    </pre>
-                                    <button
-                                      className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
-                                      onClick={() => {
-                                        // Extract text content for copying
-                                        const extractText = (element: any): string => {
-                                          if (typeof element === 'string') return element;
-                                          if (Array.isArray(element)) return element.map(extractText).join('');
-                                          if (element?.props?.children) return extractText(element.props.children);
-                                          return '';
-                                        };
-                                        const codeText = extractText(props.children);
-                                        navigator.clipboard.writeText(codeText);
-                                      }}
-                                    >
-                                      Copy
-                                    </button>
-                                  </div>
-                                ),
-                                code: (props: any) => {
-                                  const isInline = !props.className || !props.className.includes('language-');
-
-                                  if (isInline) {
-                                    return (
-                                      <code
-                                        className={`px-1.5 py-0.5 rounded text-xs font-mono ${message.role === "user"
-                                          ? "bg-yellow-200 text-yellow-900"
-                                          : "bg-gray-200 text-gray-800"
-                                          }`}
-                                      >
-                                        {props.children}
-                                      </code>
-                                    );
-                                  } else {
-                                    return (
-                                      <code
-                                        className={`block whitespace-pre-wrap ${props.className || ''}`}
-                                        style={{
-                                          fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                                        }}
-                                      >
-                                        {props.children}
-                                      </code>
-                                    );
-                                  }
-                                }
-                              }}
-                            >
-                              {message.content ?? ""}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-
-                        {/* Timestamp stays the same */}
-                        <p
-                          className={`text-xs mt-1 ${message.role === "user"
-                            ? "text-yellow-100"
-                            : "text-gray-500"
-                            }`}
+                          }}
                         >
-                          {message.timestamp.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
+                          {message.content ?? ""}
+                        </ReactMarkdown>
                       </div>
                     </div>
+
+                    {/* Timestamp below bubble */}
+                    <p
+                      className={`text-xs mt-1 ${
+                        message.role === "user" ? "text-yellow-100" : "text-gray-500"
+                      }`}
+                    >
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
                   </div>
+                </div>
+
                 ))}
               </div>
               {/* Loading Message */}
@@ -1268,7 +1406,7 @@ const parseModelInput = (input: string) => {
                 <div className="flex justify-start">
                   <div className="flex items-start space-x-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">SF</span>
+                      <span className="text-white font-bold text-xs"><Bot className="w-4 h-4 text-white" /></span>
                     </div>
                     <div className="chat-bubble-ai rounded-2xl px-4 py-3">
                       <div className="flex space-x-1">
@@ -1292,13 +1430,20 @@ const parseModelInput = (input: string) => {
           </div>
 
           {/* Chat Input */}
-          <div className="fixed bottom-0 right-0 w-[506px] bg-white border-t border-yellow-200">
+          {/* <div className="fixed bottom-0 right-0 w-[506px] bg-white border-t border-yellow-200"> */}
+          <div className="fixed bottom-1 w-[32.3%] bg-white">
             <div className="w-full px-4 py-4">
               <form onSubmit={handleSubmit} className="flex space-x-4">
                 <div className="flex-1 relative">
                   <textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                      }
+                    }}
                     placeholder="Ask about automata theory, conversions, or get help with your results..."
                     rows={2}
                     className="w-full px-4 py-3 pr-12 border border-yellow-200 rounded-xl resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent light-yellow-bg"
