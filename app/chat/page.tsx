@@ -567,6 +567,48 @@ const handleExtract = async (file: File) => {
     setMessages([initMessage])
   }
 
+const parseModelInput = (input: string) => {
+  const extractGroup = (label: string): string[] => {
+    const regex = new RegExp(`${label}:((?:{[^}]+})+)`);
+    const match = input.match(regex);
+    if (!match) return [];
+
+    const matches = [...match[1].matchAll(/{([^}]+)}/g)];
+    return matches.map((m) => m[1]);
+  };
+
+  const extractSingle = (label: string): string => {
+    const regex = new RegExp(`${label}:{([^}]+)}`);
+    const match = input.match(regex);
+    return match?.[1] || "";
+  };
+
+  const initial = extractSingle("In");
+  const final = extractGroup("Fi");
+  const alphabet = extractGroup("Abt");
+
+  const transitionsMatch = input.match(/Trn:{(.*)}/);
+  const transitionsRaw = transitionsMatch?.[1] || "";
+  const transitions = transitionsRaw
+    .split(",")
+    .map((t) => {
+      const parts = t.split("->");
+      if (parts.length === 3) {
+        return {
+          from: parts[0].replace(/[{}]/g, ""),
+          input: parts[1],
+          to: parts[2].replace(/[{}]/g, ""),
+        };
+      }
+      return null;
+    })
+    .filter((t): t is { from: string; input: string; to: string } => t !== null);
+
+  return { initial, final, alphabet, transitions };
+};
+
+  const parsed = parseModelInput(modelInput);
+
   return (
     <div className="flex min-h-screen light-yellow-bg">
       {/* <div className="flex max-w-7xl mx-auto"> */}
@@ -744,6 +786,38 @@ const handleExtract = async (file: File) => {
                   rows={2}
                   className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
                 />
+                
+              {/* Display input in simple format */}
+              {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && parsed && (
+                <>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Display the input
+                  </label>
+
+                  <div className="text-sm space-y-1 p-2 border border-yellow-400 rounded-lg bg-yellow-50">
+                    <div className="flex flex-wrap gap-6">
+                      <div><strong>Initial:</strong> {parsed.initial}</div>
+                      <div><strong>Final:</strong> {parsed.final.join(", ")}</div>
+                      <div><strong>Alphabet:</strong> {parsed.alphabet.join(", ")}</div>
+                    </div>
+
+                    <div>
+                      <strong>Transitions:</strong>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {parsed.transitions.map((t, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-block bg-yellow-100 text-yellow-800 text-sm px-2 py-1 rounded-md"
+                          >
+                            {t.from} → {t.input} → {t.to}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={handleConvert}
