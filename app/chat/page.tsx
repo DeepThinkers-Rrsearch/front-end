@@ -173,7 +173,9 @@ export default function ChatPage() {
 
     try {
       // Demo API call - replace with actual API endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`, {
+      // process.env.NEXT_PUBLIC_BACKEND_URL
+      
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/convert`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -498,6 +500,10 @@ export default function ChatPage() {
     setIsSimulatingModelOpen(false)
   }
 
+  const clearChatHistoryHandler = () => {
+    const initMessage = messages[0];
+    setMessages([initMessage])
+  }
 
   return (
     <div className="flex min-h-screen light-yellow-bg">
@@ -527,8 +533,10 @@ export default function ChatPage() {
                     name="model"
                     value={model}
                     checked={selectedModel === model}
-                    onChange={(e) =>
+                    onChange={(e) =>{
+                      setConvertResult("")
                       setSelectedModel(e.target.value as ModelType)
+                    }
                     }
                     className="sr-only"
                   />
@@ -578,7 +586,7 @@ export default function ChatPage() {
             <div className="mt-9 pt-6 border-t border-gray-200">
               <h4 className="font-medium text-gray-900 mb-2 text-center">Quick Actions</h4>
               <div className="flex flex-col items-center gap-2">
-                <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]">
+                <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]" onClick={clearChatHistoryHandler}>
                   <span className="mr-1">🧹</span> Clear Chat History
                 </button>
                 <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={conversionHistoryHandler}>
