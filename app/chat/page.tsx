@@ -709,8 +709,8 @@ const parseModelInput = (input: string) => {
         </div>
 
         {/* Main Chat Area */}
-        {/* <div className="flex-1 px-4 py-6"> */}
-        <div className="w-4/9 px-4 py-6 overflow-y-auto">
+        {/* <div className="w-4/9 px-4 py-6 overflow-y-auto"> */}
+        <div className="w-4/9 px-4 py-6 overflow-y-auto scroll-hidden max-h-screen">
           <div className="space-y-4 mb-24">
             {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
               <div className="relative border border-yellow-300 rounded-xl p-4 bg-white">
@@ -1092,7 +1092,7 @@ const parseModelInput = (input: string) => {
             <div className="font-semibold text-yellow-600 border-b border-yellow-200 pb-0">
               Messaging
             </div>
-            <div className="h-[520px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth">
+            <div className="h-[520px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth scroll-hidden">
               <div className="flex flex-col gap-y-2">
                 {messages.map((message) => (
                   <div
