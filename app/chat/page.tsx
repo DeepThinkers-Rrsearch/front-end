@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, JSX } from "react";
 import Link from "next/link";
 import { PDAStack, DFA_MINI_Stack, E_NFA_Stack, REGEX_Stack } from "../../utils/stacks/index"
-import { PDAGraphRenderer } from "../../utils/graph_renderer/index"
+import { DFAGraphRenderer, ENFAGraphRenderer, MinimizedDFAGraphRenderer, PDAGraphRenderer } from "../../utils/graph_renderer/index"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
@@ -419,11 +419,26 @@ export default function ChatPage() {
   const graphRenderHandler = (): JSX.Element => {
     switch (selectedModel) {
       case "DFA-Minimization":
-        return <></>
+        return (
+          <MinimizedDFAGraphRenderer
+            minimizedDfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        );
       case "Regex-to-ε-NFA":
-        return <></>
+        return (
+          <ENFAGraphRenderer
+            enfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        )
       case "ε-NFA-to-DFA":
-        return <></>
+        return (
+          <DFAGraphRenderer
+            dfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        )
       case "PDA":
         return (
           <PDAGraphRenderer
@@ -665,8 +680,38 @@ export default function ChatPage() {
               </div>
             )}
 
+            {convertResult && (
+            <div className="mt-8 space-y-2">
+              <h4 className="text-md font-medium text-gray-900">Generated Graph</h4>
+              <div>
+                {selectedModel === "PDA" && (
+                  <PDAGraphRenderer
+                    transitionString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
 
-
+                {selectedModel === "DFA-Minimization" && (
+                  <MinimizedDFAGraphRenderer
+                    minimizedDfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+                {selectedModel === "Regex-to-ε-NFA" && (
+                  <ENFAGraphRenderer
+                    enfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+                {selectedModel === "ε-NFA-to-DFA" && (
+                  <DFAGraphRenderer
+                    dfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+              </div>
+            </div>
+          )}
             {/* Add text input popup window */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -1201,7 +1246,7 @@ export default function ChatPage() {
               </div>
               <div>
                 <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">Input Value: </p>
-                {selectedModel == "PDA" ? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                {selectedModel == "PDA" || selectedModel == "DFA-Minimization" || selectedModel== "Regex-to-ε-NFA" || selectedModel == "ε-NFA-to-DFA"? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
                   {modelInput}
                   {/* {modelInput.split('').map((char, index) => (
                     <span
@@ -1212,6 +1257,11 @@ export default function ChatPage() {
                     </span>
                   ))} */}
                 </p> : null}
+                {/* {selectedModel === "PDA" || selectedModel === "DFA-Minimization" ? (
+                  <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                    {modelInput}
+                  </p>
+                ) : null} */}
               </div>
               <br />
               {/* Action Buttons */}
