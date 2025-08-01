@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Eye, Plus } from "lucide-react";
+import { Copy, Eye, Plus } from "lucide-react";
 import { useAppStore } from '../../utils/store';
 
 interface Message {
@@ -509,20 +509,6 @@ export default function ChatPage() {
             </div>
 
 
-            {/* Conversion Result */}
-            {convertResult && (
-              <div className="mt-4 space-y-2">
-                <h4 className="text-md font-medium text-gray-900">
-                  Conversion Result
-                </h4>
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
-                    {convertResult}
-                  </pre>
-                </div>
-              </div>
-            )}
-
             {/* Selected Model Info */}
             {/* <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="text-sm">
@@ -657,6 +643,30 @@ export default function ChatPage() {
                 </div>
               </div>
             </div>
+            {/* Conversion Result */}
+            {convertResult && (
+              <div className="mt-4 space-y-2">
+                <h4 className="text-md font-medium text-gray-900">Conversion Result</h4>
+                <div className="relative">
+                <button
+                  onClick={() => navigator.clipboard.writeText(convertResult)}
+                  className="absolute top-2 right-2 text-green-700 bg-green-100 border border-green-300 rounded p-1 hover:bg-green-200"
+                  title="Copy to clipboard"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
+                    <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
+                      {convertResult}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
+
             {/* Add text input popup window */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
