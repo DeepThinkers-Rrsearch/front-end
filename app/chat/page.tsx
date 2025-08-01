@@ -3,13 +3,15 @@
 import { useState, useRef, useEffect, JSX } from "react";
 import Link from "next/link";
 import { PDAStack, DFA_MINI_Stack, E_NFA_Stack, REGEX_Stack } from "../../utils/stacks/index"
-import { PDAGraphRenderer } from "../../utils/graph_renderer/index"
+import { DFAGraphRenderer, ENFAGraphRenderer, MinimizedDFAGraphRenderer, PDAGraphRenderer } from "../../utils/graph_renderer/index"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Eye, Plus } from "lucide-react";
+import { Copy, Eye, Plus, CheckCircle } from "lucide-react";
 import { useAppStore } from '../../utils/store';
+import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
+import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
 
 interface Message {
   id: string;
@@ -41,7 +43,7 @@ const initStackObject: stackObjectTypes = {
 const MODELS = {
   DFA_MINIMIZATION: "DFA-Minimization",
   REGEX_TO_E_NFA: "Regex-to-ε-NFA",
-  E_NFA_TO_DFA: "ε-NFA-to-DFA",
+  E_NFA_TO_DFA: "e_NFA-to-DFA",
   PDA: "PDA",
 } as const;
 
@@ -86,6 +88,10 @@ export default function ChatPage() {
 
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState<React.ReactNode>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -111,6 +117,17 @@ export default function ChatPage() {
     setModelInput(""); // clear model input when model changes
   }, [selectedModel]);
 
+useEffect(() => {
+  setUploadedImage(null);         
+  setSuccessMessage("");          
+  setModelInput("");              
+
+  // Reset the actual file input field
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";  // 🔁 Clears selected file name
+  }
+}, [selectedModel]);
+
   useEffect(() => {
     //set the converted transition values
     switch (selectedModel) {
@@ -120,7 +137,7 @@ export default function ChatPage() {
       case "Regex-to-ε-NFA":
         setRegexToENfaTransition(convertResult);
         break;
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         setENfaToDfaTransition(convertResult);
         break;
       case "PDA":
@@ -160,7 +177,7 @@ export default function ChatPage() {
       case "Regex-to-ε-NFA":
         setLatestInputRegex(modelInput);
         break;
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         setLatestInputENfa(modelInput);
         break;
       case "PDA":
@@ -212,7 +229,7 @@ export default function ChatPage() {
           setStackObject({ ...stackObject, DFA_MINIMIZATION: RegexArray })
           //REGEX_Stack_Instance.push(inputValue, data.result)
           break;
-        case "ε-NFA-to-DFA":
+        case "e_NFA-to-DFA":
           const E_NFAArray = stackObject.E_NFA_TO_DFA;
           E_NFAArray.push({
             string: modelInput,
@@ -432,7 +449,7 @@ export default function ChatPage() {
         return stackObject.DFA_MINIMIZATION
       case "Regex-to-ε-NFA":
         return stackObject.REGEX_TO_E_NFA
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         return stackObject.E_NFA_TO_DFA
       case "PDA":
         return stackObject.PDA
@@ -463,11 +480,26 @@ export default function ChatPage() {
   const graphRenderHandler = (): JSX.Element => {
     switch (selectedModel) {
       case "DFA-Minimization":
-        return <></>
+        return (
+          <MinimizedDFAGraphRenderer
+            minimizedDfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        );
       case "Regex-to-ε-NFA":
-        return <></>
-      case "ε-NFA-to-DFA":
-        return <></>
+        return (
+          <ENFAGraphRenderer
+            enfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        )
+      case "e_NFA-to-DFA":
+        return (
+          <DFAGraphRenderer
+            dfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        )
       case "PDA":
         return (
           <PDAGraphRenderer
@@ -500,6 +532,36 @@ export default function ChatPage() {
     setIsSimulatingModelOpen(false)
   }
 
+const handleExtract = async (file: File) => {
+  try {
+    setIsExtracting(true);
+    setSuccessMessage(""); // Clear old success messages
+
+    let text = "";
+
+    if (selectedModel === MODELS.DFA_MINIMIZATION) {
+      text = await extract_dfa_text_from_image(file);
+    } else if (selectedModel === MODELS.E_NFA_TO_DFA) {
+      text = await extractEpsilonNfaTextFromImage(file);
+    } else {
+      throw new Error("Unsupported model for image extraction.");
+    }
+
+    setModelInput(text);
+    // setSuccessMessage("✅ Text extracted successfully");
+    setSuccessMessage(
+  <div className="flex items-center gap-2">
+    <CheckCircle className="w-4 h-4 text-green-600" />
+    <span>Text extracted successfully</span>
+  </div>
+);
+  } catch (err) {
+    console.error("Extraction failed", err);
+    alert("Failed to extract text from image.");
+  } finally {
+    setIsExtracting(false);
+  }
+};
   const clearChatHistoryHandler = () => {
     const initMessage = messages[0];
     setMessages([initMessage])
@@ -554,19 +616,7 @@ export default function ChatPage() {
                 </label>
               ))}
             </div>
-            {/* Conversion Result */}
-            {convertResult && (
-              <div className="mt-4 space-y-2">
-                <h4 className="text-md font-medium text-gray-900">
-                  Conversion Result
-                </h4>
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
-                    {convertResult}
-                  </pre>
-                </div>
-              </div>
-            )}
+
 
             {/* Selected Model Info */}
             {/* <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -637,10 +687,15 @@ export default function ChatPage() {
                 <div className="flex flex-col gap-2">
                   <input
                     type="file"
+                    ref={fileInputRef}
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      setUploadedImage(file || null);
+                      // setUploadedImage(file || null);
+                      if (file) {
+                      setUploadedImage(file);
+                      handleExtract(file);
+                    }
                       setShowPreview(false); // Reset preview
                     }}
                     className="block text-sm text-gray-700 
@@ -670,6 +725,11 @@ export default function ChatPage() {
                 )}
               </div>
             )}
+              {successMessage && (
+                <div className="w-54 text-green-800 bg-green-100 border border-green-500 text-sm mt-1 px-3 py-2 rounded-md">
+                  {successMessage}
+                </div>
+              )}
 
             {/* Model Text Input Field */}
             <div className="space-y-4">
@@ -702,6 +762,60 @@ export default function ChatPage() {
                 </div>
               </div>
             </div>
+            {/* Conversion Result */}
+            {convertResult && (
+              <div className="mt-4 space-y-2">
+                <h4 className="text-md font-medium text-gray-900">Conversion Result</h4>
+                <div className="relative">
+                <button
+                  onClick={() => navigator.clipboard.writeText(convertResult)}
+                  className="absolute top-2 right-2 text-green-700 bg-green-100 border border-green-300 rounded p-1 hover:bg-green-200"
+                  title="Copy to clipboard"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
+                    <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
+                      {convertResult}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {convertResult && (
+            <div className="mt-8 space-y-2">
+              <h4 className="text-md font-medium text-gray-900">Generated Graph</h4>
+              <div>
+                {selectedModel === "PDA" && (
+                  <PDAGraphRenderer
+                    transitionString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+
+                {selectedModel === "DFA-Minimization" && (
+                  <MinimizedDFAGraphRenderer
+                    minimizedDfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+                {selectedModel === "Regex-to-ε-NFA" && (
+                  <ENFAGraphRenderer
+                    enfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+                {selectedModel === "e_NFA-to-DFA" && (
+                  <DFAGraphRenderer
+                    dfaString={convertResult}
+                    highlightCount={highlightCount}
+                  />
+                )}
+              </div>
+            </div>
+          )}
             {/* Add text input popup window */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -1242,7 +1356,7 @@ export default function ChatPage() {
               </div>
               <div>
                 <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">Input Value: </p>
-                {selectedModel == "PDA" ? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                {selectedModel == "PDA" || selectedModel == "DFA-Minimization" || selectedModel== "Regex-to-ε-NFA" || selectedModel == "e_NFA-to-DFA"? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
                   {modelInput}
                   {/* {modelInput.split('').map((char, index) => (
                     <span
@@ -1253,6 +1367,11 @@ export default function ChatPage() {
                     </span>
                   ))} */}
                 </p> : null}
+                {/* {selectedModel === "PDA" || selectedModel === "DFA-Minimization" ? (
+                  <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                    {modelInput}
+                  </p>
+                ) : null} */}
               </div>
               <br />
               {/* Action Buttons */}
