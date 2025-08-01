@@ -32,7 +32,7 @@ export default function PDAGraph({ transitionString, highlightCount = 0 }: Props
 
   return (
     <div
-      className="border p-4 rounded shadow overflow-auto max-w-full"
+      className="border p-4 rounded border-yellow-300 shadow overflow-auto max-w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
