@@ -690,8 +690,8 @@ const parseModelInput = (input: string) => {
               </div>
             </div> */}
 
-            <div className="mt-9 pt-6 border-t border-gray-200">
-              <h4 className="font-medium text-gray-900 mb-4 text-center">Quick Actions</h4>
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-4 text-center">Tools</h4>
               <div className="flex flex-col items-center gap-2">
               
               <button
@@ -702,6 +702,23 @@ const parseModelInput = (input: string) => {
                 View Conversion History
               </button>
 
+              <button
+              onClick={simulationModelHandler}
+              className="group relative overflow-hidden flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border border-yellow-400 bg-gradient-to-tr from-yellow-200 via-yellow-100 to-amber-100 text-yellow-800 shadow-sm w-[220px] transition-all duration-300 ease-in-out hover:scale-[1.04] hover:shadow-yellow-400/40 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            >
+              {/* Shimmering light overlay */}
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow/60 to-transparent opacity-0 group-hover:opacity-60 group-hover:animate-shimmer pointer-events-none" />
+
+              {/* Play icon with hover pulse */}
+              <Play className="w-5 h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900" />
+
+              Simulate
+
+              {/* Bottom bar shine */}
+              <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" />
+            </button>
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-4 text-center">Quick actions</h4>
                 <Link
                   href="/instructions"
                   className="flex items-center rounded-full px-3 gap-3 text-sm font-medium bg-yellow-500 text-white px-4 py-2 rounded-xl border border-yellow-400 hover:bg-yellow-600 transition-colors w-[220px] shadow-sm hover:shadow-md"
@@ -709,6 +726,7 @@ const parseModelInput = (input: string) => {
                   <BookOpen className="w-5 h-5 text-white" />
                   View Documentation
                 </Link>
+              </div>
               </div>
             </div>
 
@@ -905,23 +923,6 @@ const parseModelInput = (input: string) => {
                   />
                 )}
               </div>
-              <div className="flex justify-end mt-4">
-              <button
-              onClick={simulationModelHandler}
-              className="group relative overflow-hidden flex items-center justify-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl border border-yellow-400 bg-gradient-to-tr from-yellow-200 via-yellow-100 to-amber-100 text-yellow-800 shadow-sm w-[130px] transition-all duration-300 ease-in-out hover:scale-[1.04] hover:shadow-yellow-400/40 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            >
-              {/* Shimmering light overlay */}
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow/60 to-transparent opacity-0 group-hover:opacity-60 group-hover:animate-shimmer pointer-events-none" />
-
-              {/* Play icon with hover pulse */}
-              <Play className="w-5 h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900" />
-
-              Simulate
-
-              {/* Bottom bar shine */}
-              <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" />
-            </button>
-             </div>
             </div>
           )}
             {/* Add text input popup window */}
@@ -1117,7 +1118,7 @@ const parseModelInput = (input: string) => {
               <div className="font-semibold text-yellow-600">Messaging</div>
               <button
               onClick={clearChatHistoryHandler}
-              className="flex items-center gap-2 text-sm text-yellow-800 bg-gray-100 border border-yellow-400 rounded-md px-2 py-1 hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-2 text-sm text-yellow-800 bg-yellow-100 border border-yellow-400 rounded-md px-2 py-1 hover:bg-gray-200 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
               Clear
