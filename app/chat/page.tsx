@@ -769,15 +769,20 @@ const parseModelInput = (input: string) => {
         {/* Popup window for Comparison view button */}
         {showComparisonPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-5xl h-[90vh] overflow-y-auto flex flex-col border border-yellow-300">
+         <div className="bg-white rounded-xl shadow-lg w-full max-w-5xl h-[90vh] relative flex flex-col border border-yellow-300">
+          {/* Fixed Close Button */}
+          <button
+            className="absolute top-4 right-4 z-10 text-red-600 hover:text-red-800 bg-white rounded-full p-1 shadow-md"
+            onClick={() => setShowComparisonPopup(false)}
+            title="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Scrollable Content */}
+          <div className="p-6 overflow-y-auto flex-grow">
             <div className="flex justify-between items-center pb-3 border-b border-yellow-200">
               <h2 className="text-lg font-semibold text-yellow-700">Input vs Output Comparison</h2>
-            <button
-            className="text-red-600 hover:text-red-800"
-            onClick={() => setShowComparisonPopup(false)}
-            >
-            <X className="w-6 h-6" />
-            </button>
             </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4  items-stretch">
@@ -880,6 +885,7 @@ const parseModelInput = (input: string) => {
               <DFAGraphRenderer dfaString={convertResult} highlightCount={highlightCount} />
             )}
           </div>
+        </div>
         </div>
         </div>
         </div>
