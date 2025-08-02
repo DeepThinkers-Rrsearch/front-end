@@ -1059,6 +1059,11 @@ const parseModelInput = (input: string) => {
               </div>
               )}
 
+              {/* line between input and result */}
+              <div className="flex justify-center my-4">
+              <div className="w-[110%] left-10 mx-10 mt-8 my-4 border-t border-yellow-400 rounded-full" />
+              </div>
+
             {/* Conversion Result */}
             {convertResult && (
               <div className="mt-4 space-y-2">
