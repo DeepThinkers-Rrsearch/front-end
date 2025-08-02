@@ -39,14 +39,20 @@ export default function MinimizedDFAGraph({ minimizedDfaString , highlightCount 
 
 function generateDotForMinimizedDFA(input: string , highlightCount = 0): string {
   const lines = [input];
+  console.log("Saman",lines);
   const transitions: Array<{ from: string; to: string; label: string }> = [];
+  type item = {
+    state : string,
+    transitions : string[]
+  }
   const finalStates = new Set<string>();
   const allStates = new Set<string>();
   let startState: string | null = null;
+  let transitonsWithCorrespondingState : Array<item> = []
 
   for (const line of lines) {
     const parts = line.split(';').map(p => p.trim()).filter(Boolean);
-
+    console.log("john",parts);
     for (const part of parts) {
       if (part.startsWith('in:')) {
         startState = part.replace('in:', '').trim();
@@ -67,9 +73,27 @@ function generateDotForMinimizedDFA(input: string , highlightCount = 0): string 
           allStates.add(state.trim());
           allStates.add(to);
         }
+
+
+        const transitionItem : item = {
+          state : state,
+          transitions : transitionsList
+        }
+        transitonsWithCorrespondingState.push(transitionItem)
+        console.log("Nimal 2",transitionsList,state,typeof(transitionsList));
       }
     }
   }
+
+  console.log("Nimal",finalStates,allStates,startState)
+  console.log("Kamal",transitonsWithCorrespondingState);
+
+  // make the transitions in a correct order
+  const orederedTransitions = [];
+  // for(const transitionItem ){
+
+  // }
+  
 
   // Generate DOT
   let dot = 'digraph DFA {\n';
