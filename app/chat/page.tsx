@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Copy, Eye, Plus, CheckCircle, User, Bot, Trash2, FileText, Play, BookOpen, LayoutDashboard, X, ImageOff} from "lucide-react";
+import { Copy, Eye, EyeOff, Plus, CheckCircle, User, Bot, Trash2, FileText, Play, BookOpen, LayoutDashboard, X, ImageOff} from "lucide-react";
 import { useAppStore } from '../../utils/store';
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
@@ -99,6 +99,7 @@ export default function ChatPage() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  const [showParsedInput, setShowParsedInput] = useState(false);
 
   // access the store
   const {
@@ -978,38 +979,7 @@ const parseModelInput = (input: string) => {
                   rows={2}
                   className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
                 />
-                
-              {/* Display input in simple format */}
-              {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && parsed && (
-                <>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Display the input
-                  </label>
-
-                  <div className="text-sm space-y-1 p-2 border border-yellow-400 rounded-lg bg-yellow-50">
-                    <div className="flex flex-wrap gap-6">
-                      <div><strong>Initial:</strong> {parsed.initial}</div>
-                      <div><strong>Final:</strong> {parsed.final.join(", ")}</div>
-                      <div><strong>Alphabet:</strong> {parsed.alphabet.join(", ")}</div>
-                    </div>
-
-                    <div>
-                      <strong>Transitions:</strong>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {parsed.transitions.map((t, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-block bg-yellow-100 text-yellow-800 text-sm px-2 py-1 rounded-md"
-                          >
-                            {t.from} → {t.input} → {t.to}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
+                             
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={handleConvert}
@@ -1025,9 +995,64 @@ const parseModelInput = (input: string) => {
                     >                  Add Text Input
                     </button>
                   ) : null}
+                  
+                  {/* Show View Parsed Button if modelInput is valid */}
+                  {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && (
+                    <div className="relative group w-fit">
+                      <button
+                        onClick={() => setShowParsedInput((prev) => !prev)}
+                        className="inline-flex items-center gap-1 px-3 py-2 border border-yellow-500 bg-gradient-to-tr from-yellow-400 via-amber-300 to-yellow-200 text-yellow-900 text-sm font-semibold rounded-lg hover:bg-yellow-300 transition-all duration-200 shadow hover:shadow-md"
+                      >
+                        {showParsedInput ? (
+                          <Eye className="w-4 h-4 text-yellow-800" />
+                        ) : (
+                          <EyeOff className="w-4 h-4 text-yellow-800" />
+                        )}
+                      </button>
+
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-black bg-white rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        Simplified version
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </div>
             </div>
+            {/* Display input in simple format */}
+              {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && parsed && showParsedInput && (
+                <div className="mt-6 text-sm space-y-2 p-3 border border-yellow-400 rounded-lg bg-white shadow-sm relative">
+
+                {/* Embedded title badge */}
+                <div className="absolute -top-3 left-4 bg-yellow-50 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm border border-yellow-500">
+                  Simplified View
+                </div>
+
+                {/* Parsed Content */}
+                <div className="flex flex-wrap gap-6 pt-2">
+                  <div><strong className="text-yellow-700">Initial:</strong> {parsed.initial}</div>
+                  <div><strong className="text-yellow-700">Final:</strong> {parsed.final.join(", ")}</div>
+                  <div><strong className="text-yellow-700">Alphabet:</strong> {parsed.alphabet.join(", ")}</div>
+                </div>
+
+                <div>
+                  <strong className="text-yellow-700">Transitions:</strong>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {parsed.transitions.map((t, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-300"
+                      >
+                        {t.from} → {t.input} → {t.to}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+              )}
+
             {/* Conversion Result */}
             {convertResult && (
               <div className="mt-4 space-y-2">
