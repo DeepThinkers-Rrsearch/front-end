@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Copy, Eye, Plus, CheckCircle } from "lucide-react";
+import { Copy, Eye, Plus, CheckCircle, CircleX } from "lucide-react";
 import { useAppStore } from '../../utils/store';
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
@@ -89,6 +89,7 @@ export default function ChatPage() {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isAccepting, setIsAccepting] = useState<boolean>(false);
 
   const [successMessage, setSuccessMessage] = useState<React.ReactNode>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,16 +118,16 @@ export default function ChatPage() {
     setModelInput(""); // clear model input when model changes
   }, [selectedModel]);
 
-useEffect(() => {
-  setUploadedImage(null);         
-  setSuccessMessage("");          
-  setModelInput("");              
+  useEffect(() => {
+    setUploadedImage(null);
+    setSuccessMessage("");
+    setModelInput("");
 
-  // Reset the actual file input field
-  if (fileInputRef.current) {
-    fileInputRef.current.value = "";  // 🔁 Clears selected file name
-  }
-}, [selectedModel]);
+    // Reset the actual file input field
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";  // 🔁 Clears selected file name
+    }
+  }, [selectedModel]);
 
   useEffect(() => {
     //set the converted transition values
@@ -141,7 +142,7 @@ useEffect(() => {
         setENfaToDfaTransition(convertResult);
         break;
       case "PDA":
-        setPdaTransition(convertResult)
+        setPdaTransition(dulplicateTransitionRemoverForPDA())
         break;
       default:
         break;
@@ -191,7 +192,7 @@ useEffect(() => {
     try {
       // Demo API call - replace with actual API endpoint
       // process.env.NEXT_PUBLIC_BACKEND_URL
-      
+
       const response = await fetch(`http://127.0.0.1:8000/api/v1/convert`, {
         method: "POST",
         headers: {
@@ -209,6 +210,7 @@ useEffect(() => {
 
       const data = await response.json();
       setConvertResult(data.result);
+      setIsAccepting(data.isAccepted)
 
       switch (selectedModel) {
         case "DFA-Minimization":
@@ -443,7 +445,6 @@ useEffect(() => {
   }
 
   const conversionHistoryExtractor = (): Array<StackItem> => {
-    console.log("butterfly effect", selectedModel);
     switch (selectedModel) {
       case "DFA-Minimization":
         return stackObject.DFA_MINIMIZATION
@@ -457,20 +458,6 @@ useEffect(() => {
         return [];
     }
   }
-
-  const conversions = [
-    {
-      id: 1,
-      input: "aaaaaaaabbbbbbcc",
-      result: ['delta(q0, a, Z) -> (q0, PUSH)', 'delta(q0, a, A) -> (q0, PUSH)', 'delta(q0, b, A) -> (q1, POP)', 'delta(q1, b, A) -> (q1, POP)', 'delta(q1, c, A) -> (q2, POP)', 'delta(q2, c, A) -> (q2, POP)', 'delta(q2, ε, Z) -> (qf, NOOP)'],
-    },
-    {
-      id: 2,
-      input: "aaaaaaaaaabbbbb",
-      result: ['delta(q0, a, Z) -> (q0, PUSH)', 'delta(q0, a, A) -> (q1, NOOP)', 'delta(q1, a, A) -> (q0, PUSH)', 'delta(q1, b, A) -> (q2, POP)', 'delta(q2, b, A) -> (q2, POP)', 'delta(q2, ε, Z) -> (qf, NOOP)'],
-    },
-  ];
-
 
   const simulationModelHandler = () => {
 
@@ -529,42 +516,59 @@ useEffect(() => {
   }
 
   const onClose = () => {
+    setHighlightCount(0)
     setIsSimulatingModelOpen(false)
   }
 
-const handleExtract = async (file: File) => {
-  try {
-    setIsExtracting(true);
-    setSuccessMessage(""); // Clear old success messages
+  const handleExtract = async (file: File) => {
+    try {
+      setIsExtracting(true);
+      setSuccessMessage(""); // Clear old success messages
 
-    let text = "";
+      let text = "";
 
-    if (selectedModel === MODELS.DFA_MINIMIZATION) {
-      text = await extract_dfa_text_from_image(file);
-    } else if (selectedModel === MODELS.E_NFA_TO_DFA) {
-      text = await extractEpsilonNfaTextFromImage(file);
-    } else {
-      throw new Error("Unsupported model for image extraction.");
+      if (selectedModel === MODELS.DFA_MINIMIZATION) {
+        text = await extract_dfa_text_from_image(file);
+      } else if (selectedModel === MODELS.E_NFA_TO_DFA) {
+        text = await extractEpsilonNfaTextFromImage(file);
+      } else {
+        throw new Error("Unsupported model for image extraction.");
+      }
+
+      setModelInput(text);
+      // setSuccessMessage("✅ Text extracted successfully");
+      setSuccessMessage(
+        <div className="flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <span>Text extracted successfully</span>
+        </div>
+      );
+    } catch (err) {
+      console.error("Extraction failed", err);
+      alert("Failed to extract text from image.");
+    } finally {
+      setIsExtracting(false);
     }
-
-    setModelInput(text);
-    // setSuccessMessage("✅ Text extracted successfully");
-    setSuccessMessage(
-  <div className="flex items-center gap-2">
-    <CheckCircle className="w-4 h-4 text-green-600" />
-    <span>Text extracted successfully</span>
-  </div>
-);
-  } catch (err) {
-    console.error("Extraction failed", err);
-    alert("Failed to extract text from image.");
-  } finally {
-    setIsExtracting(false);
-  }
-};
+  };
   const clearChatHistoryHandler = () => {
     const initMessage = messages[0];
     setMessages([initMessage])
+  }
+
+  const dulplicateTransitionRemoverForPDA = () => {
+    const seen = new Set<string>();
+    const lines = convertResult
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line !== ''); // Remove empty lines
+
+    const uniqueLines = lines.filter(line => {
+      if (seen.has(line)) return false;
+      seen.add(line);
+      return true;
+    });
+
+    return uniqueLines.join('\n');
   }
 
   return (
@@ -595,7 +599,7 @@ const handleExtract = async (file: File) => {
                     name="model"
                     value={model}
                     checked={selectedModel === model}
-                    onChange={(e) =>{
+                    onChange={(e) => {
                       setConvertResult("")
                       setSelectedModel(e.target.value as ModelType)
                     }
@@ -693,9 +697,9 @@ const handleExtract = async (file: File) => {
                       const file = e.target.files?.[0];
                       // setUploadedImage(file || null);
                       if (file) {
-                      setUploadedImage(file);
-                      handleExtract(file);
-                    }
+                        setUploadedImage(file);
+                        handleExtract(file);
+                      }
                       setShowPreview(false); // Reset preview
                     }}
                     className="block text-sm text-gray-700 
@@ -725,11 +729,11 @@ const handleExtract = async (file: File) => {
                 )}
               </div>
             )}
-              {successMessage && (
-                <div className="w-54 text-green-800 bg-green-100 border border-green-500 text-sm mt-1 px-3 py-2 rounded-md">
-                  {successMessage}
-                </div>
-              )}
+            {successMessage && (
+              <div className="w-54 text-green-800 bg-green-100 border border-green-500 text-sm mt-1 px-3 py-2 rounded-md">
+                {successMessage}
+              </div>
+            )}
 
             {/* Model Text Input Field */}
             <div className="space-y-4">
@@ -767,17 +771,17 @@ const handleExtract = async (file: File) => {
               <div className="mt-4 space-y-2">
                 <h4 className="text-md font-medium text-gray-900">Conversion Result</h4>
                 <div className="relative">
-                <button
-                  onClick={() => navigator.clipboard.writeText(convertResult)}
-                  className="absolute top-2 right-2 text-green-700 bg-green-100 border border-green-300 rounded p-1 hover:bg-green-200"
-                  title="Copy to clipboard"
-                >
-                  <Copy className="w-4 h-4" />
-                </button>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(convertResult)}
+                    className="absolute top-2 right-2 text-green-700 bg-green-100 border border-green-300 rounded p-1 hover:bg-green-200"
+                    title="Copy to clipboard"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
 
                   <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
                     <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
-                      {convertResult}
+                      {selectedModel == "PDA" ? dulplicateTransitionRemoverForPDA() : convertResult}
                     </pre>
                   </div>
                 </div>
@@ -785,37 +789,49 @@ const handleExtract = async (file: File) => {
             )}
 
             {convertResult && (
-            <div className="mt-8 space-y-2">
-              <h4 className="text-md font-medium text-gray-900">Generated Graph</h4>
-              <div>
-                {selectedModel === "PDA" && (
-                  <PDAGraphRenderer
-                    transitionString={convertResult}
-                    highlightCount={highlightCount}
-                  />
-                )}
+              <div className="mt-8 space-y-2">
+                <h4 className="text-md font-medium text-gray-900">Generated Graph</h4>
+                <div>
+                  {selectedModel === "PDA" && (
+                    <PDAGraphRenderer
+                      transitionString={convertResult}
+                      highlightCount={highlightCount}
+                    />
+                  )}
 
-                {selectedModel === "DFA-Minimization" && (
-                  <MinimizedDFAGraphRenderer
-                    minimizedDfaString={convertResult}
-                    highlightCount={highlightCount}
-                  />
-                )}
-                {selectedModel === "Regex-to-ε-NFA" && (
-                  <ENFAGraphRenderer
-                    enfaString={convertResult}
-                    highlightCount={highlightCount}
-                  />
-                )}
-                {selectedModel === "e_NFA-to-DFA" && (
-                  <DFAGraphRenderer
-                    dfaString={convertResult}
-                    highlightCount={highlightCount}
-                  />
-                )}
+                  {selectedModel === "DFA-Minimization" && (
+                    <MinimizedDFAGraphRenderer
+                      minimizedDfaString={convertResult}
+                      highlightCount={highlightCount}
+                    />
+                  )}
+                  {selectedModel === "Regex-to-ε-NFA" && (
+                    <ENFAGraphRenderer
+                      enfaString={convertResult}
+                      highlightCount={highlightCount}
+                    />
+                  )}
+                  {selectedModel === "e_NFA-to-DFA" && (
+                    <DFAGraphRenderer
+                      dfaString={convertResult}
+                      highlightCount={highlightCount}
+                    />
+                  )}
+                </div>
+                <br />
+                {selectedModel == "PDA" ? isAccepting ? <div className="w-54 text-green-800 bg-green-100 border border-green-500 text-sm mt-1 px-3 py-2 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span>Input string is accepted!</span>
+                  </div>
+                </div> : <div className="w-100 text-red-800 bg-red-100 border border-red-500 text-sm mt-1 px-3 py-2 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <CircleX className="w-4 h-4 text-red-600" />
+                    <span>Input rejected: Not in final state or stack not empty!</span>
+                  </div>
+                </div> : <></>}
               </div>
-            </div>
-          )}
+            )}
             {/* Add text input popup window */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -1356,16 +1372,16 @@ const handleExtract = async (file: File) => {
               </div>
               <div>
                 <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">Input Value: </p>
-                {selectedModel == "PDA" || selectedModel == "DFA-Minimization" || selectedModel== "Regex-to-ε-NFA" || selectedModel == "e_NFA-to-DFA"? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
-                  {modelInput}
-                  {/* {modelInput.split('').map((char, index) => (
+                {selectedModel == "PDA" || selectedModel == "DFA-Minimization" || selectedModel == "Regex-to-ε-NFA" || selectedModel == "e_NFA-to-DFA" ? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                  {/* {modelInput} */}
+                  {(modelInput + 'ε').split('').map((char, index) => (
                     <span
                       key={index}
                       style={{ color: index < highlightCount ? '#FFD700' : '#000' }}
                     >
                       {char}
                     </span>
-                  ))} */}
+                  ))}
                 </p> : null}
                 {/* {selectedModel === "PDA" || selectedModel === "DFA-Minimization" ? (
                   <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
