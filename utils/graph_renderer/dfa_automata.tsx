@@ -73,10 +73,10 @@ function parseDFAToDot(raw: string, highlightCount = 0): { dot: string } {
   dotLines.push('digraph DFA {');
   dotLines.push('  rankdir=LR;');
   dotLines.push('  node [shape=circle];');
-  dotLines.push('  start [shape=plaintext label=""];');
-
+  dotLines.push('  init [shape=point, style=invis];');
+  
   if (initialMatch?.[1]) {
-    dotLines.push(`  start -> "${initialMatch[1]}" [label="start"];`);
+    dotLines.push(`  init -> "${initialMatch[1]}";`);
   }
 
   // All states
