@@ -1311,7 +1311,7 @@ const parseModelInput = (input: string) => {
               <div className="font-semibold text-yellow-600">Messaging</div>
               <button
               onClick={clearChatHistoryHandler}
-              className="flex items-center gap-2 text-sm text-yellow-800 bg-yellow-100 border border-yellow-400 rounded-md px-2 py-1 hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-2 text-sm text-yellow-800 bg-white border border-yellow-400 rounded-md px-2 py-1 hover:bg-gray-200 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
               Clear
