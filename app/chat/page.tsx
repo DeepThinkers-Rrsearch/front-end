@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Copy, Eye, Plus, CheckCircle, CircleX } from "lucide-react";
+import { Copy, Eye, EyeOff, Plus, CheckCircle, CircleX, User, Bot, Trash2, FileText, Play, BookOpen, LayoutDashboard, X, ImageOff} from "lucide-react";
 import { useAppStore } from '../../utils/store';
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
@@ -60,6 +60,9 @@ export default function ChatPage() {
       timestamp: new Date(),
     },
   ]);
+  const [showComparisonPopup, setShowComparisonPopup] = useState(false);
+  const [isConversionValid, setIsConversionValid] = useState(false);
+
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<ModelType>(
@@ -101,6 +104,7 @@ export default function ChatPage() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  const [showParsedInput, setShowParsedInput] = useState(false);
 
   // access the store
   const {
@@ -152,6 +156,10 @@ export default function ChatPage() {
         break;
     }
   }, [convertResult])
+
+  useEffect(() => {
+  setIsConversionValid(false); // disables comparison on model switch
+}, [selectedModel]);
 
   const getModelPlaceholder = (model: ModelType) => {
     switch (model) {
@@ -282,6 +290,7 @@ export default function ChatPage() {
     } finally {
       setIsConverting(false);
     }
+    setIsConversionValid(true);
   };
 
   // const handleSubmit = async (e: React.FormEvent) => {
@@ -443,6 +452,12 @@ export default function ChatPage() {
     } finally {
       setIsLoading(false);
     }
+    
+    // Scroll after adding user message
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+
   };
 
   const conversionHistoryHandler = () => {
@@ -591,6 +606,57 @@ export default function ChatPage() {
     return uniqueLines.join('\n');
   }
 
+const parseModelInput = (input: string) => {
+  const extractGroup = (label: string): string[] => {
+    const regex = new RegExp(`${label}:((?:{[^}]+})+)`);
+    const match = input.match(regex);
+    if (!match) return [];
+
+    const matches = [...match[1].matchAll(/{([^}]+)}/g)];
+    return matches.map((m) => m[1]);
+  };
+
+  const extractSingle = (label: string): string => {
+    const regex = new RegExp(`${label}:{([^}]+)}`);
+    const match = input.match(regex);
+    return match?.[1] || "";
+  };
+
+  const initial = extractSingle("In");
+  const final = extractGroup("Fi");
+  const alphabet = extractGroup("Abt");
+
+  const transitionsMatch = input.match(/Trn:{(.*)}/);
+  const transitionsRaw = transitionsMatch?.[1] || "";
+  const transitions = transitionsRaw
+    .split(",")
+    .map((t) => {
+      const parts = t.split("->");
+      if (parts.length === 3) {
+        return {
+          from: parts[0].replace(/[{}]/g, ""),
+          input: parts[1],
+          to: parts[2].replace(/[{}]/g, ""),
+        };
+      }
+      return null;
+    })
+    .filter((t): t is { from: string; input: string; to: string } => t !== null);
+
+  return { initial, final, alphabet, transitions };
+};
+
+  const parsed = parseModelInput(modelInput);
+  const convertedParsed = parseModelInput(convertResult);
+
+  const MODEL_DISPLAY_NAMES: Record<ModelType, string> = {
+  [MODELS.DFA_MINIMIZATION]: "DFA-Minimization",
+  [MODELS.REGEX_TO_E_NFA]: "Regex-to-ε-NFA",
+  [MODELS.E_NFA_TO_DFA]: "ε-NFA-to-DFA",
+  [MODELS.PDA]: "PDA",
+};
+
+
   return (
     <div className="flex min-h-screen light-yellow-bg">
       {/* <div className="flex max-w-7xl mx-auto"> */}
@@ -636,7 +702,8 @@ export default function ChatPage() {
                       <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
                     )}
                   </div>
-                  <span className="text-sm font-medium">{model}</span>
+                  {/* <span className="text-sm font-medium">{model}</span> */}
+                  <span className="text-sm font-medium">{MODEL_DISPLAY_NAMES[model]}</span>
                 </label>
               ))}
             </div>
@@ -657,33 +724,202 @@ export default function ChatPage() {
               </div>
             </div> */}
 
-            <div className="mt-9 pt-6 border-t border-gray-200">
-              <h4 className="font-medium text-gray-900 mb-2 text-center">Quick Actions</h4>
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-4 text-center">Tools</h4>
               <div className="flex flex-col items-center gap-2">
-                <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]" onClick={clearChatHistoryHandler}>
-                  <span className="mr-1">🧹</span> Clear Chat History
-                </button>
-                <button className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]" onClick={conversionHistoryHandler}>
-                  📄 View Conversion History
-                </button>
-                <button className="flex items-center gap-2 text-sm bg-yellow-200 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-400 transition-colors w-[200px]" onClick={simulationModelHandler}>
-                  <span className="mr-8">▶️</span> Simulate
-                </button>
+              
+              <button
+                onClick={conversionHistoryHandler}
+                className="flex items-center rounded-full px-3 gap-1 text-sm font-medium bg-yellow-50 text-yellow-800 px-4 py-2 rounded-xl border border-yellow-300 hover:bg-yellow-200 transition-colors w-[220px] shadow-sm hover:shadow-md"
+              >
+                <FileText className="w-5 h-5 text-yellow-600" />
+                View Conversion History
+              </button>
+
+                {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
+                <button
+                  onClick={() => setShowComparisonPopup(true)}
+                  disabled={!isConversionValid}
+                  className={`group relative flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border w-[220px] transition-all duration-300 ease-in-out
+                    ${
+                      isConversionValid
+                        ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
+                        : "bg-yellow-100 border-yellow-200 text-yellow-400 cursor-not-allowed opacity-60"
+                    }
+                  `}
+                >
+                    <LayoutDashboard
+                      className={`w-5 h-5 ${
+                        isConversionValid
+                          ? "text-yellow-700 group-hover:scale-110 group-hover:text-yellow-900 transition-transform duration-300"
+                          : "text-yellow-400"
+                      }`}
+                    />
+                    Comparison View
+                  </button>
+                )}
+
+              <button
+              onClick={simulationModelHandler}
+              className="group relative overflow-hidden flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border border-yellow-400 bg-gradient-to-tr from-yellow-200 via-yellow-100 to-amber-100 text-yellow-800 shadow-sm w-[220px] transition-all duration-300 ease-in-out hover:scale-[1.04] hover:shadow-yellow-400/40 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            >
+              {/* Shimmering light overlay */}
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow/60 to-transparent opacity-0 group-hover:opacity-60 group-hover:animate-shimmer pointer-events-none" />
+
+              {/* Play icon with hover pulse */}
+              <Play className="w-5 h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900" />
+
+              Simulate
+
+              {/* Bottom bar shine */}
+              <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" />
+            </button>
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-4 text-center">Quick actions</h4>
                 <Link
                   href="/instructions"
-                  className="flex items-center gap-2 text-sm bg-yellow-400 text-white px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-500 transition-colors w-[200px]"
+                  className="flex items-center rounded-full px-3 gap-3 text-sm font-medium bg-yellow-500 text-white px-4 py-2 rounded-xl border border-yellow-400 hover:bg-yellow-600 transition-colors w-[220px] shadow-sm hover:shadow-md"
                 >
-                  <span className="mr-1">📘</span> View Documentation
+                  <BookOpen className="w-5 h-5 text-white" />
+                  View Documentation
                 </Link>
+              </div>
               </div>
             </div>
 
           </div>
         </div>
+        
+        {/* Popup window for Comparison view button */}
+        {showComparisonPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+         <div className="bg-white rounded-xl shadow-lg w-full max-w-5xl h-[90vh] relative flex flex-col border border-yellow-300">
+          {/* Fixed Close Button */}
+          <button
+            className="absolute top-4 right-4 z-10 text-red-600 hover:text-red-800 bg-white rounded-full p-1 shadow-md"
+            onClick={() => setShowComparisonPopup(false)}
+            title="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Scrollable Content */}
+          <div className="p-6 overflow-y-auto flex-grow">
+            <div className="flex justify-between items-center pb-3 border-b border-yellow-200">
+              <h2 className="text-lg font-semibold text-yellow-700">Input vs Output Comparison</h2>
+            </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4  items-stretch">
+        {/* Left Side - Input */}
+        <div className="flex flex-col h-full">
+        <div className="flex flex-col flex-grow bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h4 className="font-medium text-yellow-800 mb-2">User Input</h4>
+          <div className="relative">
+           {selectedModel === MODELS.DFA_MINIMIZATION && (
+          <div className="text-sm text-gray-700 whitespace-pre-wrap bg-white p-2 border border-yellow-100 rounded">
+            {modelInput || "No input provided."}
+          </div>
+           )}
+          {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && parsed && (
+            <div className="text-sm space-y-2 p-3 border border-yellow-400 rounded-lg bg-white shadow-sm">
+              <div className="flex flex-wrap gap-6">
+                <div><strong className="text-yellow-700">Initial:</strong> {parsed.initial}</div>
+                <div><strong className="text-yellow-700">Final:</strong> {parsed.final.join(", ")}</div>
+                <div><strong className="text-yellow-700">Alphabet:</strong> {parsed.alphabet.join(", ")}</div>
+              </div>
+
+              <div>
+                <strong className="text-yellow-700">Transitions:</strong>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {parsed.transitions.map((t, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-300"
+                    >
+                      {t.from} → {t.input} → {t.to}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          </div>
+          
+          {uploadedImage ? (
+          <div className="mt-4">
+            <h5 className="text-sm font-medium text-yellow-700 mb-1">Uploaded Image</h5>
+            <img
+              src={URL.createObjectURL(uploadedImage)}
+              alt="Uploaded"
+              className="w-full rounded border border-yellow-300"
+            />
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-col items-center justify-center gap-2 p-4 border border-yellow-200 bg-yellow-50 rounded-lg text-yellow-700 shadow-sm hover:shadow-md transition-shadow">
+            <ImageOff className="w-6 h-6 text-yellow-500" />
+            <span className="text-sm italic">No uploaded image available</span>
+          </div>
+        )}
+        </div>
+        </div>
+        {/* Right Side - Output */}
+        <div className="flex flex-col h-full">
+        <div className="flex flex-col flex-grow bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h4 className="font-medium text-yellow-800 mb-2">Converted Output</h4>
+          <div className="relative">
+            {selectedModel === MODELS.DFA_MINIMIZATION && (
+            <div className="text-xs font-mono text-green-800 whitespace-pre-wrap bg-white p-2 border border-green-200 rounded max-h-32 overflow-y-auto">
+              {convertResult || "No output generated."}
+            </div>
+            )}
+            
+             {selectedModel === MODELS.E_NFA_TO_DFA && convertedParsed && (
+            <div className="text-sm space-y-2 p-3 bg-green-50 border border-green-400 rounded-lg shadow-sm text-green-800">
+              <div className="flex flex-wrap gap-6">
+                <div><strong className="text-green-700">Initial:</strong> {convertedParsed.initial}</div>
+                <div><strong className="text-green-700">Final:</strong> {convertedParsed.final.join(", ")}</div>
+                <div><strong className="text-green-700">Alphabet:</strong> {convertedParsed.alphabet.join(", ")}</div>
+              </div>
+              <div>
+                <strong className="text-green-700">Transitions:</strong>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {convertedParsed.transitions.map((t, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full border border-green-300"
+                    >
+                      {t.from} → {t.input} → {t.to}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          </div>
+         
+
+          
+          {/* Rendered Image */}
+          <div className="mt-4">
+            <h5 className="text-sm font-medium text-yellow-700 mb-1">Generated Image</h5>
+            {selectedModel === "DFA-Minimization" && (
+              <MinimizedDFAGraphRenderer minimizedDfaString={convertResult} highlightCount={highlightCount} />
+            )}
+            {selectedModel === "e_NFA-to-DFA" && (
+              <DFAGraphRenderer dfaString={convertResult} highlightCount={highlightCount} />
+            )}
+          </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+      </div>
+      )}
 
         {/* Main Chat Area */}
-        {/* <div className="flex-1 px-4 py-6"> */}
-        <div className="w-4/9 px-4 py-6 overflow-y-auto">
+        {/* <div className="w-4/9 px-4 py-6 overflow-y-auto"> */}
+        <div className="w-4/9 px-4 py-6 overflow-y-auto scroll-hidden max-h-screen">
           <div className="space-y-4 mb-24">
             {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
               <div className="relative border border-yellow-300 rounded-xl p-4 bg-white">
@@ -758,16 +994,22 @@ export default function ChatPage() {
             {/* Model Text Input Field */}
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">
-                Input for {selectedModel}
+                {/* Input for {selectedModel} */}
+                Input for {MODEL_DISPLAY_NAMES[selectedModel]}
               </label>
               <div className="space-y-2">
                 <textarea
                   value={modelInput}
-                  onChange={(e) => setModelInput(e.target.value)}
+                  // onChange={(e) => setModelInput(e.target.value)}
+                  onChange={(e) => {
+                    setModelInput(e.target.value);
+                    setIsConversionValid(false); // disables the comparison button until reconversion
+                  }}
                   placeholder={getModelPlaceholder(selectedModel)}
                   rows={2}
                   className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
                 />
+                             
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={handleConvert}
@@ -783,9 +1025,69 @@ export default function ChatPage() {
                     >                  Add Text Input
                     </button>
                   ) : null}
+                  
+                  {/* Show View Parsed Button if modelInput is valid */}
+                  {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && (
+                    <div className="relative group w-fit">
+                      <button
+                        onClick={() => setShowParsedInput((prev) => !prev)}
+                        className="inline-flex items-center gap-1 px-3 py-2 border border-yellow-500 bg-gradient-to-tr from-yellow-400 via-amber-300 to-yellow-200 text-yellow-900 text-sm font-semibold rounded-lg hover:bg-yellow-300 transition-all duration-200 shadow hover:shadow-md"
+                      >
+                        {showParsedInput ? (
+                          <Eye className="w-4 h-4 text-yellow-800" />
+                        ) : (
+                          <EyeOff className="w-4 h-4 text-yellow-800" />
+                        )}
+                      </button>
+
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-black bg-white rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        Simplified version
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </div>
             </div>
+            {/* Display input in simple format */}
+              {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && parsed && showParsedInput && (
+                <div className="mt-6 text-sm space-y-2 p-3 border border-yellow-400 rounded-lg bg-white shadow-sm relative">
+
+                {/* Embedded title badge */}
+                <div className="absolute -top-3 left-4 bg-yellow-50 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm border border-yellow-500">
+                  Simplified View
+                </div>
+
+                {/* Parsed Content */}
+                <div className="flex flex-wrap gap-6 pt-2">
+                  <div><strong className="text-yellow-700">Initial:</strong> {parsed.initial}</div>
+                  <div><strong className="text-yellow-700">Final:</strong> {parsed.final.join(", ")}</div>
+                  <div><strong className="text-yellow-700">Alphabet:</strong> {parsed.alphabet.join(", ")}</div>
+                </div>
+
+                <div>
+                  <strong className="text-yellow-700">Transitions:</strong>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {parsed.transitions.map((t, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-300"
+                      >
+                        {t.from} → {t.input} → {t.to}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+              )}
+
+              {/* line between input and result */}
+              <div className="flex justify-center my-4">
+              <div className="w-[110%] left-10 mx-10 mt-8 my-4 border-t border-yellow-400 rounded-full" />
+              </div>
+
             {/* Conversion Result */}
             {convertResult && (
               <div className="mt-4 space-y-2">
@@ -1040,179 +1342,314 @@ export default function ChatPage() {
         </div>
         {/* Messaging interface */}
         <div className="w-3/9 border-l border-yellow-400 px-2 py-4 overflow-y-auto">
-          <div className="h-full flex flex-col gap-3">
-            <div className="font-semibold text-yellow-600 border-b border-yellow-200 pb-0">
-              Messaging
+          <div className=" flex flex-col gap-3">
+            <div className="flex justify-between items-center pb-0">
+              <div className="font-semibold text-yellow-600">Messaging</div>
+              <button
+              onClick={clearChatHistoryHandler}
+              className="flex items-center gap-2 text-sm text-yellow-800 bg-white border border-yellow-400 rounded-md px-2 py-1 hover:bg-gray-200 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear
+            </button>
             </div>
-            <div className="h-[520px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth">
+            <div className="h-[480px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth scroll-hidden">
               <div className="flex flex-col gap-y-2">
                 {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
-                      }`}
-                  >
-                    <div
-                      className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${  // ← UPDATE THIS LINE
-                        message.role === "user" ? "flex-row-reverse" : "flex-row"
-                        } items-start space-x-2`}
-                    >
-                      {/* Avatar section stays the same */}
-                      <div
-                        className={`flex-shrink-0 ${message.role === "user" ? "ml-3" : "mr-3"
-                          }`}
-                      >
-                        {message.role === "assistant" ? (
-                          <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">SF</span>
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">U</span>
-                          </div>
-                        )}
-                      </div>
+                  // <div
+                  //   key={message.id}
+                  //   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                  //     }`}
+                  // >
+                  //   <div
+                  //     className={`flex ${  // ← UPDATE THIS LINE
+                  //       message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  //       } items-start space-x-2`}
+                  //   >
+                  //     {/* Avatar section stays the same */}
+                  //     <div
+                  //       className={`flex-shrink-0 ${message.role === "user" ? "ml-3" : "mr-3"
+                  //         }`}
+                  //     >
+                  //       {message.role === "assistant" ? (
+                  //         <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                  //           <span className="text-white font-bold text-xs">SF</span>
+                  //         </div>
+                  //       ) : (
+                  //         <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                  //           <span className="text-white font-bold text-xs">U</span>
+                  //         </div>
+                  //       )}
+                  //     </div>
 
-                      {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
-                      <div
-                        className={`rounded-2xl px-4 py-1 ${  // ← REMOVE max-w-xs lg:max-w-md from here
-                          message.role === "user"
-                            ? "chat-bubble-user"
-                            : "chat-bubble-ai"
-                          }`}
-                      >
-                        {/* REPLACE the existing content section with: */}
-                        <div className="overflow-hidden">
-                          <div
-                            className={`prose prose-sm max-w-none break-words leading-relaxed ${message.role === "user"
-                              ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
-                              : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
-                              } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
-                          >
-                            {/* <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeHighlight]}
-                        components={{
-                          pre: ({ children, ...props }) => (
-                            <pre 
-                              {...props} 
-                              className="overflow-x-auto max-w-full whitespace-pre-wrap break-words text-xs leading-relaxed bg-gray-100 p-3 rounded-md"
-                            >
-                              {children}
-                            </pre>
-                          ),
-                          code: ({ children, className, ...props }) => {
-                            // Check if it's inline code by looking at className
-                            const isInline = !className || !className.includes('language-');
+                  //     {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
+                  //     {/* <div
+                  //       className={`rounded-2xl px-4 py-1 ${  // ← REMOVE max-w-xs lg:max-w-md from here
+                  //         message.role === "user"
+                  //           ? "chat-bubble-user"
+                  //           : "chat-bubble-ai"
+                  //         }`}
+                  //     > */}
+                  //     <div
+                  //       className={`rounded-2xl px-4 py-1 ${
+                  //         message.role === "user"
+                  //           ? "chat-bubble-user max-w-[90%]"
+                  //           : "chat-bubble-ai w-[480px] max-w-full"
+                  //       }`}
+                  //     >
+
+                  //       {/* REPLACE the existing content section with: */}
+                  //       <div className="overflow-hidden">
+                  //         <div
+                  //           className={`prose prose-sm max-w-none break-words leading-relaxed ${message.role === "user"
+                  //             ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                  //             : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                  //             } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                  //         >
+                  //           {/* <ReactMarkdown
+                  //       remarkPlugins={[remarkGfm]}
+                  //       rehypePlugins={[rehypeHighlight]}
+                  //       components={{
+                  //         pre: ({ children, ...props }) => (
+                  //           <pre 
+                  //             {...props} 
+                  //             className="overflow-x-auto max-w-full whitespace-pre-wrap break-words text-xs leading-relaxed bg-gray-100 p-3 rounded-md"
+                  //           >
+                  //             {children}
+                  //           </pre>
+                  //         ),
+                  //         code: ({ children, className, ...props }) => {
+                  //           // Check if it's inline code by looking at className
+                  //           const isInline = !className || !className.includes('language-');
                             
-                            if (isInline) {
-                              return (
-                                <code 
-                                  {...props} 
-                                  className="break-words bg-gray-200 px-1 py-0.5 rounded text-xs"
+                  //           if (isInline) {
+                  //             return (
+                  //               <code 
+                  //                 {...props} 
+                  //                 className="break-words bg-gray-200 px-1 py-0.5 rounded text-xs"
+                  //               >
+                  //                 {children}
+                  //               </code>
+                  //             );
+                  //           } else {
+                  //             return (
+                  //               <code 
+                  //                 {...props} 
+                  //                 className="block whitespace-pre-wrap break-words text-xs"
+                  //               >
+                  //                 {children}
+                  //               </code>
+                  //             );
+                  //           }
+                  //         }
+                  //       }}
+                  //     >
+                  //       {message.content ?? ""}
+                  //     </ReactMarkdown> */}
+                  //           <ReactMarkdown
+                  //             remarkPlugins={[remarkGfm]}
+                  //             rehypePlugins={[rehypeHighlight]}
+                  //             components={{
+                  //               pre: (props: any) => (
+                  //                 <div className="relative my-4">
+                  //                   <pre
+                  //                     className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${message.role === "user"
+                  //                       ? "bg-yellow-800 text-yellow-100 border-yellow-600"
+                  //                       : "bg-yellow-100 text-yellow-100 border-yellow-100"
+                  //                       }`}
+                  //                     style={{
+                  //                       fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                  //                     }}
+                  //                   >
+                  //                     {props.children}
+                  //                   </pre>
+                  //                   <button
+                  //                     className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                  //                     onClick={() => {
+                  //                       // Extract text content for copying
+                  //                       const extractText = (element: any): string => {
+                  //                         if (typeof element === 'string') return element;
+                  //                         if (Array.isArray(element)) return element.map(extractText).join('');
+                  //                         if (element?.props?.children) return extractText(element.props.children);
+                  //                         return '';
+                  //                       };
+                  //                       const codeText = extractText(props.children);
+                  //                       navigator.clipboard.writeText(codeText);
+                  //                     }}
+                  //                   >
+                  //                     Copy
+                  //                   </button>
+                  //                 </div>
+                  //               ),
+                  //               code: (props: any) => {
+                  //                 const isInline = !props.className || !props.className.includes('language-');
+
+                  //                 if (isInline) {
+                  //                   return (
+                  //                     <code
+                  //                       className={`px-1.5 py-0.5 rounded text-xs font-mono ${message.role === "user"
+                  //                         ? "bg-yellow-200 text-yellow-900"
+                  //                         : "bg-gray-200 text-gray-800"
+                  //                         }`}
+                  //                     >
+                  //                       {props.children}
+                  //                     </code>
+                  //                   );
+                  //                 } else {
+                  //                   return (
+                  //                     <code
+                  //                       className={`block whitespace-pre-wrap ${props.className || ''}`}
+                  //                       style={{
+                  //                         fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                  //                       }}
+                  //                     >
+                  //                       {props.children}
+                  //                     </code>
+                  //                   );
+                  //                 }
+                  //               }
+                  //             }}
+                  //           >
+                  //             {message.content ?? ""}
+                  //           </ReactMarkdown>
+                  //         </div>
+                  //       </div>
+
+                  //       {/* Timestamp stays the same */}
+                  //       <p
+                  //         className={`text-xs mt-1 ${message.role === "user"
+                  //           ? "text-yellow-100"
+                  //           : "text-gray-500"
+                  //           }`}
+                  //       >
+                  //         {message.timestamp.toLocaleTimeString([], {
+                  //           hour: "2-digit",
+                  //           minute: "2-digit",
+                  //         })}
+                  //       </p>
+                  //     </div>
+                  //   </div>
+                  // </div>
+                  <div
+                  key={message.id}
+                  className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"}`}
+                >
+                  {/* SF or U avatar on top */}
+                  <div className="mb-1">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        message.role === "assistant"
+                          ? "bg-gradient-to-br from-orange-400 to-orange-500"
+                          : "bg-gray-400"
+                      }`}
+                    >
+                      <span className="text-white font-bold text-xs">
+                        {/* {message.role === "assistant" ? "SF" : "U"} */}
+                        {message.role === "assistant" ? (
+                            <Bot className="w-4 h-4 text-white" />
+                          ) : (
+                            <User className="w-4 h-4 text-white" />
+                          )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Message bubble below */}
+                  <div
+                    className={`rounded-2xl px-4 py-1 ${
+                      message.role === "user"
+                        ? "chat-bubble-user max-w-[90%]"
+                        : "chat-bubble-ai w-[480px] max-w-full"
+                    }`}
+                  >
+                    {/* MARKDOWN MESSAGE RENDERING - UNCHANGED */}
+                    <div className="overflow-hidden">
+                      <div
+                        className={`prose prose-sm max-w-none break-words leading-relaxed ${
+                          message.role === "user"
+                            ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                            : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                        } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                      >
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                          components={{
+                            pre: (props: any) => (
+                              <div className="relative my-4">
+                                <pre
+                                  className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${
+                                    message.role === "user"
+                                      ? "bg-yellow-800 text-yellow-100 border-yellow-600"
+                                      : "bg-yellow-100 text-yellow-100 border-yellow-100"
+                                  }`}
+                                  style={{
+                                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                  }}
                                 >
-                                  {children}
+                                  {props.children}
+                                </pre>
+                                <button
+                                  className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                                  onClick={() => {
+                                    const extractText = (element: any): string => {
+                                      if (typeof element === 'string') return element;
+                                      if (Array.isArray(element)) return element.map(extractText).join('');
+                                      if (element?.props?.children) return extractText(element.props.children);
+                                      return '';
+                                    };
+                                    const codeText = extractText(props.children);
+                                    navigator.clipboard.writeText(codeText);
+                                  }}
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                            ),
+                            code: (props: any) => {
+                              const isInline = !props.className || !props.className.includes('language-');
+                              return isInline ? (
+                                <code
+                                  className={`px-1.5 py-0.5 rounded text-xs font-mono ${
+                                    message.role === "user"
+                                      ? "bg-yellow-200 text-yellow-900"
+                                      : "bg-gray-200 text-gray-800"
+                                  }`}
+                                >
+                                  {props.children}
                                 </code>
-                              );
-                            } else {
-                              return (
-                                <code 
-                                  {...props} 
-                                  className="block whitespace-pre-wrap break-words text-xs"
+                              ) : (
+                                <code
+                                  className={`block whitespace-pre-wrap ${props.className || ''}`}
+                                  style={{
+                                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                  }}
                                 >
-                                  {children}
+                                  {props.children}
                                 </code>
                               );
                             }
-                          }
-                        }}
-                      >
-                        {message.content ?? ""}
-                      </ReactMarkdown> */}
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                              rehypePlugins={[rehypeHighlight]}
-                              components={{
-                                pre: (props: any) => (
-                                  <div className="relative my-4">
-                                    <pre
-                                      className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${message.role === "user"
-                                        ? "bg-yellow-800 text-yellow-100 border-yellow-600"
-                                        : "bg-yellow-100 text-yellow-100 border-yellow-100"
-                                        }`}
-                                      style={{
-                                        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                                      }}
-                                    >
-                                      {props.children}
-                                    </pre>
-                                    <button
-                                      className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
-                                      onClick={() => {
-                                        // Extract text content for copying
-                                        const extractText = (element: any): string => {
-                                          if (typeof element === 'string') return element;
-                                          if (Array.isArray(element)) return element.map(extractText).join('');
-                                          if (element?.props?.children) return extractText(element.props.children);
-                                          return '';
-                                        };
-                                        const codeText = extractText(props.children);
-                                        navigator.clipboard.writeText(codeText);
-                                      }}
-                                    >
-                                      Copy
-                                    </button>
-                                  </div>
-                                ),
-                                code: (props: any) => {
-                                  const isInline = !props.className || !props.className.includes('language-');
-
-                                  if (isInline) {
-                                    return (
-                                      <code
-                                        className={`px-1.5 py-0.5 rounded text-xs font-mono ${message.role === "user"
-                                          ? "bg-yellow-200 text-yellow-900"
-                                          : "bg-gray-200 text-gray-800"
-                                          }`}
-                                      >
-                                        {props.children}
-                                      </code>
-                                    );
-                                  } else {
-                                    return (
-                                      <code
-                                        className={`block whitespace-pre-wrap ${props.className || ''}`}
-                                        style={{
-                                          fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-                                        }}
-                                      >
-                                        {props.children}
-                                      </code>
-                                    );
-                                  }
-                                }
-                              }}
-                            >
-                              {message.content ?? ""}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-
-                        {/* Timestamp stays the same */}
-                        <p
-                          className={`text-xs mt-1 ${message.role === "user"
-                            ? "text-yellow-100"
-                            : "text-gray-500"
-                            }`}
+                          }}
                         >
-                          {message.timestamp.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
+                          {message.content ?? ""}
+                        </ReactMarkdown>
                       </div>
                     </div>
+
+                    {/* Timestamp below bubble */}
+                    <p
+                      className={`text-xs mt-1 ${
+                        message.role === "user" ? "text-yellow-100" : "text-gray-500"
+                      }`}
+                    >
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
                   </div>
+                </div>
+
                 ))}
               </div>
               {/* Loading Message */}
@@ -1220,7 +1657,7 @@ export default function ChatPage() {
                 <div className="flex justify-start">
                   <div className="flex items-start space-x-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">SF</span>
+                      <span className="text-white font-bold text-xs"><Bot className="w-4 h-4 text-white" /></span>
                     </div>
                     <div className="chat-bubble-ai rounded-2xl px-4 py-3">
                       <div className="flex space-x-1">
@@ -1244,13 +1681,20 @@ export default function ChatPage() {
           </div>
 
           {/* Chat Input */}
-          <div className="fixed bottom-0 right-0 w-[506px] bg-white border-t border-yellow-200">
+          {/* <div className="fixed bottom-0 right-0 w-[506px] bg-white border-t border-yellow-200"> */}
+          <div className="fixed bottom-1 w-[32.3%] bg-white">
             <div className="w-full px-4 py-4">
               <form onSubmit={handleSubmit} className="flex space-x-4">
                 <div className="flex-1 relative">
                   <textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                      }
+                    }}
                     placeholder="Ask about automata theory, conversions, or get help with your results..."
                     rows={2}
                     className="w-full px-4 py-3 pr-12 border border-yellow-200 rounded-xl resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent light-yellow-bg"

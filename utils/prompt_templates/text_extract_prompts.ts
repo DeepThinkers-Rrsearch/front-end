@@ -1,41 +1,58 @@
 export const extractEpsilonNfaPrompt = `
-You are an intelligent agent that extracts DFA (Deterministic Finite Automaton) transitions from a given DFA diagram.
+You are an intelligent agent that extracts ε-NFA transitions from a given automata diagram.
 
-    Your task is to analyze the DFA diagram and extract all transitions between states exactly as they are, without missing any information.
+Your task is to analyze the diagram and extract all transitions between states, then return them in a specific standardized format.
 
-    Here is how your output format must strictly look like:
-    "In:{q0};Fi:{qF1}{qF2}{qF3};Abt:{a}{b};Trn:{q0}->a->{qF1},{q0}->b->{q1},{q1}->a->{qF3},{q1}->b->{q1},{qF3}->a->{qF3},{qF3}->b->{qF3},{qF1}->a->{qF1},{qF1}->b->{qF2},{qF2}->a->{qF3},{qF2}->b->{qF2}"
+---
 
-    Explanation of the format:
+**Output format (single line)**:
+"In:{A};Fi:{F1}{F2};Abt:{a}{b};Trn:{A}->a->{B},{B}->ε->{F1}"
 
-    Initial state must be labeled q0. Even they have another labels.
+---
 
-    "In:{q0}" indicates the initial state (only one), always named as q0.
+### Rules:
 
-    Final states must be labeled qF1, qF2, etc. Even they have another labels.
+1. **Do NOT rename any states in the transitions.**  
+   - Use the exact labels as shown in the image (like 'A', 'B', '0', '1', 'q0', 'q1' etc.)
 
-    "Fi:{qF1}{qF2}" indicates final states. In curly braces with no spaces. Use names like qF1, qF2, etc.
+2. **Initial State Logic**:
+   - If the diagram uses names like 'q0', 'q1', etc., label initial state as 'q0'
+   - If the diagram uses names like 'A', 'B', 'C', then initial = 'A'
+   - If the diagram uses names like '0', '1', '2', then initial = '0'
+   - Format: 'In:{<name>}'
 
+3. **Final States Logic**:
+   - If states are like 'q0', 'q1', etc., then final states = 'qF1', 'qF2', ...
+   - If states are like 'A', 'B', 'C', or '0', '1', '2', use 'F1', 'F2', 'F3', ...
+   - Format: 'Fi:{F1}{F2}' or 'Fi:{qF1}{qF2}'
 
-    The input alphabet (Abt:) should **only include actual input symbols** (like 0, 1, a, b, etc.) inside curly braces, with no spaces or commas.
+4. **Abt section**:  
+   - Include only input symbols (like 'a', 'b', '0', '1') — no ε or ∈.
+   - Format: 'Abt:{a}{b}'
 
-    **Do not include ε or ∈ in the Abt section**, even if used in transitions.
+5. **Trn section**:
+   - Must show all transitions, using the **original state names**
+   - If ε or ∈ transitions exist, include them like 'A->ε->B'
+   - Format: 'Trn:{A}->a->{B},{B}->ε->{F1}'
 
-    However, if ε (or ∈) transitions exist, **you must include them** in the transition section (Trn:) like {q0}->∈->{q1}.
+6. The entire result must be in **one single line**, without explanations, notes, or line breaks.
 
+7. Do not skip any transitions or self-loops.
 
-    "Trn:{qX}->symbol->{qY}" lists transitions in the exact format. Separate multiple transitions with commas.
+---
 
-    All non-initial and non-final states should be named q1, q2, q3, etc.
+### Sample Outputs:
 
-    Sometimes arrows heads may be overlapped each other. In that case carefully identify the arrow head and extract the transition.
+- If states are A, B, C:
+  \"In:{A};Fi:{F1};Abt:{a}{b};Trn:{A}->a->{B},{B}->b->{F1}"\
 
-    Do not include any explanation or notes in your output—only the exact DFA transition string.
+- If states are 0, 1, 2:
+  \"In:{0};Fi:{F1}{F2};Abt:{a}{b};Trn:{0}->a->{1},{1}->b->{F2}"\
 
-    Do not use any newline characters; everything should be returned as one single-line string inside quotes.
-
-    Remember: Do not skip any state or transition. Even if a state loops to itself on a symbol, that must be included.
+- If states are q0, q1, q2:
+  \"In:{q0};Fi:{qF1};Abt:{a}{b};Trn:{q0}->a->{q1},{q1}->b->{qF1}"\
 `;
+
 
 export const dfa_minimization_extraction_prompt = `
 You are an intelligent agent that extracts DFA (Deterministic Finite Automaton) transitions from a given DFA diagram.
