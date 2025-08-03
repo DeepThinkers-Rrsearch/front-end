@@ -195,9 +195,10 @@ export default function ChatPage() {
 
     try {
       // Demo API call - replace with actual API endpoint
-      // process.env.NEXT_PUBLIC_BACKEND_URL
+      // http://127.0.0.1:8000/api/v1/convert
+      process.env.NEXT_PUBLIC_BACKEND_URL
 
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/convert`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
