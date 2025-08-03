@@ -41,10 +41,10 @@ const initStackObject: stackObjectTypes = {
 
 // Model types
 const MODELS = {
-  DFA_MINIMIZATION: "DFA-Minimization",
   REGEX_TO_E_NFA: "Regex-to-ε-NFA",
-  E_NFA_TO_DFA: "e_NFA-to-DFA",
   PDA: "PDA",
+  E_NFA_TO_DFA: "e_NFA-to-DFA",
+  DFA_MINIMIZATION: "DFA-Minimization",
 } as const;
 
 type ModelType = (typeof MODELS)[keyof typeof MODELS];
