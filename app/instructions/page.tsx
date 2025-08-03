@@ -403,7 +403,7 @@ export default function InstructionsPage() {
 
       {/* Technology Stack */}
       <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               Technology Stack
@@ -413,7 +413,7 @@ export default function InstructionsPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="bg-gray-50 rounded-lg p-6 text-center">
               <div className="w-12 h-12 bg-orange-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
                 <span className="text-2xl">🔥</span>
@@ -428,13 +428,25 @@ export default function InstructionsPage() {
 
             <div className="bg-gray-50 rounded-lg p-6 text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🚀</span>
+                <span className="text-2xl">🌐</span>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Streamlit
+                Next JS
               </h3>
               <p className="text-gray-600 text-sm">
                 Web application framework for interactive interfaces
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6 text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">🚀</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Python
+              </h3>
+              <p className="text-gray-600 text-sm">
+               Language used in backend to handle models, build APIs
               </p>
             </div>
 
