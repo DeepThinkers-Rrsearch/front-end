@@ -1438,55 +1438,6 @@ export default function ChatPage() {
           }}
       />
       )}
-      {isSimulatingModelOpen && selectedModel !== "DFA-Minimization" && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="w-full sm:w-3/4 md:w-1/2 rounded-2xl shadow-2xl relative overflow-hidden border-t-[6px] border-[#FFD700] bg-[#FFF8DE]">
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="absolute top-3 right-3 text-gray-600 hover:text-gray-800 text-2xl font-bold"
-              aria-label="Close"
-            >
-              ×
-            </button>
-
-            {/* Modal Content for other models */}
-            <div className="p-6">
-              <div>
-                <h1 className="text-2xl font-bold text-[#FFD700] mb-2 tracking-wide">{`${selectedModel} Simulating...`}</h1>
-              </div>
-              <br />
-              <div className="mb-6">
-                {convertResult != "" ? graphRenderHandler() : <p>Please perform an automata process first!!!</p>}
-              </div>
-              <div>
-                <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">Input Value: </p>
-                {(selectedModel == "PDA" || selectedModel == "Regex-to-ε-NFA" || selectedModel == "e_NFA-to-DFA") && (
-                  <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
-                    {modelInput}
-                  </p>
-                )}
-              </div>
-              <br />
-              {/* Action Buttons */}
-              <div className="flex justify-between">
-                <button
-                  onClick={simulateBackward}
-                  className="px-5 py-2 rounded-lg border border-[#FFD700] text-[#8B8000] hover:bg-[#FFECB3] transition-colors"
-                >
-                  Left
-                </button>
-                <button
-                  onClick={simulateForward}
-                  className="px-5 py-2 rounded-lg bg-[#FFD700] text-white font-semibold hover:bg-yellow-500 transition-colors"
-                >
-                  Right
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-     )}
     </div>
   );
 }
