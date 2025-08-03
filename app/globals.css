@@ -75,3 +75,18 @@
 .btn-secondary:hover {
   background-color: #fffbeb;
 }
+
+/* Hide vertical scrollbar but allow scrolling */
+.scroll-hidden {
+  overflow-y: auto;
+
+  /* For Firefox */
+  scrollbar-width: none;
+
+  /* For IE, Edge */
+  -ms-overflow-style: none;
+}
+
+.scroll-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}

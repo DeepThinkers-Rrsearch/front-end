@@ -83,7 +83,7 @@ export const setup_llm = () => {
         messages: state.messages,
         regex_to_e_nfa_hint: regex_to_e_nfa_hint,
       });
-    } else if (selected_model?.name === "ε-NFA-to-DFA") {
+    } else if (selected_model?.name === "e_NFA-to-DFA") {
       // Fixed the name matching
       prompt = await e_nfa_to_dfa_prompt_template.invoke({
         messages: state.messages,

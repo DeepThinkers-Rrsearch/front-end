@@ -2,19 +2,16 @@
 
 import { useState, useRef, useEffect, JSX } from "react";
 import Link from "next/link";
-import {
-  PDAStack,
-  DFA_MINI_Stack,
-  E_NFA_Stack,
-  REGEX_Stack,
-} from "../../utils/stacks/index";
-import { PDAGraphRenderer } from "../../utils/graph_renderer/index";
+import { DFAGraphRenderer, ENFAGraphRenderer, MinimizedDFAGraphRenderer, PDAGraphRenderer } from "../../utils/graph_renderer/index"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github.css";
-import { Eye, Plus } from "lucide-react";
-import { useAppStore } from "../../utils/store";
+import { Copy, Eye, EyeOff, Plus, CheckCircle, CircleX, User, Bot, Trash2, FileText, Play, BookOpen, LayoutDashboard, X, ImageOff} from "lucide-react";
+import { useAppStore } from '../../utils/store';
+import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
+import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
+import { DFASimulator } from "@/utils/graph_renderer/DFASimulator";
 
 interface Message {
   id: string;
@@ -24,15 +21,29 @@ interface Message {
 }
 
 type StackItem = {
-  string: string;
-  conversion: string;
-};
+  string: string
+  conversion: string
+}
+
+type stackObjectTypes = {
+  DFA_MINIMIZATION: Array<StackItem>,
+  REGEX_TO_E_NFA: Array<StackItem>,
+  E_NFA_TO_DFA: Array<StackItem>,
+  PDA: Array<StackItem>,
+}
+
+const initStackObject: stackObjectTypes = {
+  DFA_MINIMIZATION: [],
+  REGEX_TO_E_NFA: [],
+  E_NFA_TO_DFA: [],
+  PDA: [],
+}
 
 // Model types
 const MODELS = {
   DFA_MINIMIZATION: "DFA-Minimization",
   REGEX_TO_E_NFA: "Regex-to-ε-NFA",
-  E_NFA_TO_DFA: "ε-NFA-to-DFA",
+  E_NFA_TO_DFA: "e_NFA-to-DFA",
   PDA: "PDA",
 } as const;
 
@@ -48,6 +59,9 @@ export default function ChatPage() {
       timestamp: new Date(),
     },
   ]);
+  const [showComparisonPopup, setShowComparisonPopup] = useState(false);
+  const [isConversionValid, setIsConversionValid] = useState(false);
+
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<ModelType>(
@@ -62,13 +76,7 @@ export default function ChatPage() {
   const [isSimulatingModelOpen, setIsSimulatingModelOpen] =
     useState<boolean>(false);
   const [highlightCount, setHighlightCount] = useState<number>(0);
-
-  // creating stack instances
-
-  const PDA_Stack_Instance = new PDAStack();
-  const DFA_MINI_Stack_Instance = new DFA_MINI_Stack();
-  const E_NFA_Stack_Instance = new E_NFA_Stack();
-  const REGEX_Stack_Instance = new REGEX_Stack();
+  const [stackObject, setStackObject] = useState<stackObjectTypes>(initStackObject);
 
   const [showModal, setShowModal] = useState(false);
   const [initialState, setInitialState] = useState("");
@@ -80,10 +88,19 @@ export default function ChatPage() {
 
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [isAccepting, setIsAccepting] = useState<boolean>(false);
+
+  const [successMessage, setSuccessMessage] = useState<React.ReactNode>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [simulationInputString, setSimulationInputString] = useState("");
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  const [showParsedInput, setShowParsedInput] = useState(false);
 
   // access the store
   const {
@@ -106,6 +123,17 @@ export default function ChatPage() {
   }, [selectedModel]);
 
   useEffect(() => {
+    setUploadedImage(null);
+    setSuccessMessage("");
+    setModelInput("");
+
+    // Reset the actual file input field
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";  // 🔁 Clears selected file name
+    }
+  }, [selectedModel]);
+
+  useEffect(() => {
     //set the converted transition values
     switch (selectedModel) {
       case "DFA-Minimization":
@@ -114,16 +142,20 @@ export default function ChatPage() {
       case "Regex-to-ε-NFA":
         setRegexToENfaTransition(convertResult);
         break;
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         setENfaToDfaTransition(convertResult);
         break;
       case "PDA":
-        setPdaTransition(convertResult);
+        setPdaTransition(dulplicateTransitionRemoverForPDA())
         break;
       default:
         break;
     }
-  }, [convertResult]);
+  }, [convertResult])
+
+  useEffect(() => {
+  setIsConversionValid(false); // disables comparison on model switch
+}, [selectedModel]);
 
   const getModelPlaceholder = (model: ModelType) => {
     switch (model) {
@@ -153,7 +185,7 @@ export default function ChatPage() {
       case "Regex-to-ε-NFA":
         setLatestInputRegex(modelInput);
         break;
-      case "ε-NFA-to-DFA":
+      case "e_NFA-to-DFA":
         setLatestInputENfa(modelInput);
         break;
       case "PDA":
@@ -165,19 +197,19 @@ export default function ChatPage() {
 
     try {
       // Demo API call - replace with actual API endpoint
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            input_text: modelInput,
-            model_type: selectedModel,
-          }),
-        }
-      );
+      // http://127.0.0.1:8000/api/v1/convert
+      // process.env.NEXT_PUBLIC_BACKEND_URL
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input_text: modelInput,
+          model_type: selectedModel,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
@@ -185,19 +217,47 @@ export default function ChatPage() {
 
       const data = await response.json();
       setConvertResult(data.result);
+      setIsAccepting(data.isAccepted)
 
       switch (selectedModel) {
         case "DFA-Minimization":
-          DFA_MINI_Stack_Instance.push(inputValue, data.result);
+          const DFAArray = stackObject.DFA_MINIMIZATION;
+          DFAArray.push({
+            string: modelInput,
+            conversion: data.result
+          });
+          setStackObject({ ...stackObject, DFA_MINIMIZATION: DFAArray })
+          //DFA_MINI_Stack_Instance.push(inputValue, data.result)
           break;
         case "Regex-to-ε-NFA":
-          REGEX_Stack_Instance.push(inputValue, data.result);
+          const RegexArray = stackObject.REGEX_TO_E_NFA;
+          RegexArray.push({
+            string: modelInput,
+            conversion: data.result
+          });
+          setStackObject({ ...stackObject, REGEX_TO_E_NFA: RegexArray })
+          //REGEX_Stack_Instance.push(inputValue, data.result)
           break;
-        case "ε-NFA-to-DFA":
-          E_NFA_Stack_Instance.push(inputValue, data.result);
+        case "e_NFA-to-DFA":
+          const E_NFAArray = stackObject.E_NFA_TO_DFA;
+          E_NFAArray.push({
+            string: modelInput,
+            conversion: data.result
+          });
+          setStackObject({ ...stackObject, E_NFA_TO_DFA: E_NFAArray })
+          //E_NFA_Stack_Instance.push(inputValue, data.result)
           break;
         case "PDA":
-          PDA_Stack_Instance.push(inputValue, data.result);
+          const PDAArray = stackObject.PDA;
+
+          PDAArray.push({
+            string: modelInput,
+            conversion: data.result
+          });
+          setStackObject({ ...stackObject, PDA: PDAArray })
+          //PDA_Stack_Instance.push(inputValue, data.result)
+          break;
+        default:
           break;
       }
       // add the conversion result to the
@@ -223,6 +283,7 @@ export default function ChatPage() {
     } finally {
       setIsConverting(false);
     }
+    setIsConversionValid(true);
   };
 
   // const handleSubmit = async (e: React.FormEvent) => {
@@ -386,6 +447,12 @@ export default function ChatPage() {
     } finally {
       setIsLoading(false);
     }
+    
+    // Scroll after adding user message
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+
   };
 
   const conversionHistoryHandler = () => {
@@ -393,61 +460,64 @@ export default function ChatPage() {
   };
 
   const conversionHistoryExtractor = (): Array<StackItem> => {
-    console.log("butterfly effect", selectedModel);
+    console.log("John",selectedModel);
     switch (selectedModel) {
       case "DFA-Minimization":
-        return DFA_MINI_Stack_Instance.getStack();
+        return stackObject.DFA_MINIMIZATION
       case "Regex-to-ε-NFA":
-        return REGEX_Stack_Instance.getStack();
-      case "ε-NFA-to-DFA":
-        return E_NFA_Stack_Instance.getStack();
+        return stackObject.REGEX_TO_E_NFA
+      case "e_NFA-to-DFA":
+        return stackObject.E_NFA_TO_DFA
       case "PDA":
-        return PDA_Stack_Instance.getStack();
+        return stackObject.PDA
       default:
         return [];
     }
   };
 
-  const conversions = [
-    {
-      id: 1,
-      input: "aaaaaaaabbbbbbcc",
-      result: [
-        "delta(q0, a, Z) -> (q0, PUSH)",
-        "delta(q0, a, A) -> (q0, PUSH)",
-        "delta(q0, b, A) -> (q1, POP)",
-        "delta(q1, b, A) -> (q1, POP)",
-        "delta(q1, c, A) -> (q2, POP)",
-        "delta(q2, c, A) -> (q2, POP)",
-        "delta(q2, ε, Z) -> (qf, NOOP)",
-      ],
-    },
-    {
-      id: 2,
-      input: "aaaaaaaaaabbbbb",
-      result: [
-        "delta(q0, a, Z) -> (q0, PUSH)",
-        "delta(q0, a, A) -> (q1, NOOP)",
-        "delta(q1, a, A) -> (q0, PUSH)",
-        "delta(q1, b, A) -> (q2, POP)",
-        "delta(q2, b, A) -> (q2, POP)",
-        "delta(q2, ε, Z) -> (qf, NOOP)",
-      ],
-    },
-  ];
+  // const simulationModelHandler = () => {
+
+  //   setIsSimulatingModelOpen(true)
+  // }
 
   const simulationModelHandler = () => {
-    setIsSimulatingModelOpen(true);
+    if (selectedModel === "DFA-Minimization") {
+      // For DFA Minimization, we need an input string to simulate
+      // const inputString = prompt("Enter a string to simulate on the DFA:");
+      // if (inputString !== null) {
+      //   setSimulationInputString(inputString);
+      //   setIsSimulatingModelOpen(true);
+      // }
+          setIsSimulatingModelOpen(true);
+    } else {
+      // For other models, keep existing behavior
+      setIsSimulatingModelOpen(true);
+    }
   };
 
   const graphRenderHandler = (): JSX.Element => {
     switch (selectedModel) {
       case "DFA-Minimization":
-        return <></>;
+        return (
+          <MinimizedDFAGraphRenderer
+            minimizedDfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        );
       case "Regex-to-ε-NFA":
-        return <></>;
-      case "ε-NFA-to-DFA":
-        return <></>;
+        return (
+          <ENFAGraphRenderer
+            enfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        )
+      case "e_NFA-to-DFA":
+        return (
+          <DFAGraphRenderer
+            dfaString={convertResult}
+            highlightCount={highlightCount}
+          />
+        )
       case "PDA":
         return (
           <PDAGraphRenderer
@@ -476,11 +546,115 @@ export default function ChatPage() {
   };
 
   const onClose = () => {
-    setIsSimulatingModelOpen(false);
+    setHighlightCount(0)
+    setIsSimulatingModelOpen(false)
+  }
+
+  const handleExtract = async (file: File) => {
+    try {
+      setIsExtracting(true);
+      setSuccessMessage(""); // Clear old success messages
+
+      let text = "";
+
+      if (selectedModel === MODELS.DFA_MINIMIZATION) {
+        text = await extract_dfa_text_from_image(file);
+      } else if (selectedModel === MODELS.E_NFA_TO_DFA) {
+        text = await extractEpsilonNfaTextFromImage(file);
+      } else {
+        throw new Error("Unsupported model for image extraction.");
+      }
+
+      setModelInput(text);
+      // setSuccessMessage("✅ Text extracted successfully");
+      setSuccessMessage(
+        <div className="flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <span>Text extracted successfully</span>
+        </div>
+      );
+    } catch (err) {
+      console.error("Extraction failed", err);
+      alert("Failed to extract text from image.");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+  const clearChatHistoryHandler = () => {
+    const initMessage = messages[0];
+    setMessages([initMessage])
+  }
+
+  const dulplicateTransitionRemoverForPDA = () => {
+    const seen = new Set<string>();
+    const lines = convertResult
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line !== ''); // Remove empty lines
+
+    const uniqueLines = lines.filter(line => {
+      if (seen.has(line)) return false;
+      seen.add(line);
+      return true;
+    });
+
+    return uniqueLines.join('\n');
+  }
+
+const parseModelInput = (input: string) => {
+  const extractGroup = (label: string): string[] => {
+    const regex = new RegExp(`${label}:((?:{[^}]+})+)`);
+    const match = input.match(regex);
+    if (!match) return [];
+
+    const matches = [...match[1].matchAll(/{([^}]+)}/g)];
+    return matches.map((m) => m[1]);
   };
 
-  //---------------------
-  console.log("Butterfly", PDA_Stack_Instance.getStack());
+  const extractSingle = (label: string): string => {
+    const regex = new RegExp(`${label}:{([^}]+)}`);
+    const match = input.match(regex);
+    return match?.[1] || "";
+  };
+
+  const initial = extractSingle("In");
+  const final = extractGroup("Fi");
+  const alphabet = extractGroup("Abt");
+
+  const transitionsMatch = input.match(/Trn:{(.*)}/);
+  const transitionsRaw = transitionsMatch?.[1] || "";
+  const transitions = transitionsRaw
+    .split(",")
+    .map((t) => {
+      const parts = t.split("->");
+      if (parts.length === 3) {
+        return {
+          from: parts[0].replace(/[{}]/g, ""),
+          input: parts[1],
+          to: parts[2].replace(/[{}]/g, ""),
+        };
+      }
+      return null;
+    })
+    .filter((t): t is { from: string; input: string; to: string } => t !== null);
+
+  return { initial, final, alphabet, transitions };
+};
+
+  const parsed = parseModelInput(modelInput);
+  const convertedParsed = parseModelInput(convertResult);
+
+  const MODEL_DISPLAY_NAMES: Record<ModelType, string> = {
+  [MODELS.DFA_MINIMIZATION]: "DFA-Minimization",
+  [MODELS.REGEX_TO_E_NFA]: "Regex-to-ε-NFA",
+  [MODELS.E_NFA_TO_DFA]: "ε-NFA-to-DFA",
+  [MODELS.PDA]: "PDA",
+};
+
+const isArrayEmpty = (array = conversionHistoryExtractor()) : boolean => {
+  return Array.isArray(array) && array.length === 0;
+}
+
 
   return (
     <div className="flex min-h-screen light-yellow-bg">
@@ -510,8 +684,10 @@ export default function ChatPage() {
                     name="model"
                     value={model}
                     checked={selectedModel === model}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      setConvertResult("")
                       setSelectedModel(e.target.value as ModelType)
+                    }
                     }
                     className="sr-only"
                   />
@@ -526,24 +702,12 @@ export default function ChatPage() {
                       <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
                     )}
                   </div>
-                  <span className="text-sm font-medium">{model}</span>
+                  {/* <span className="text-sm font-medium">{model}</span> */}
+                  <span className="text-sm font-medium">{MODEL_DISPLAY_NAMES[model]}</span>
                 </label>
               ))}
             </div>
 
-            {/* Conversion Result */}
-            {convertResult && (
-              <div className="mt-4 space-y-2">
-                <h4 className="text-md font-medium text-gray-900">
-                  Conversion Result
-                </h4>
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
-                  <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
-                    {convertResult}
-                  </pre>
-                </div>
-              </div>
-            )}
 
             {/* Selected Model Info */}
             {/* <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -560,40 +724,224 @@ export default function ChatPage() {
               </div>
             </div> */}
 
-            <div className="mt-9 pt-6 border-t border-gray-200">
-              <h4 className="font-medium text-gray-900 mb-2 text-center">
-                Quick Actions
-              </h4>
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-4 text-center">Tools</h4>
               <div className="flex flex-col items-center gap-2">
-                <button className="flex items-center gap-2 text-sm bg-yellow-50 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-200 transition-colors w-[200px]">
-                  <span className="mr-1">🧹</span> Clear Chat History
-                </button>
+              
+              <button
+                onClick={conversionHistoryHandler}
+                className={`flex items-center rounded-full px-3 gap-1 text-sm font-medium bg-yellow-50 text-yellow-800 px-4 py-2 rounded-xl border border-yellow-300 
+                  ${
+                      !isArrayEmpty()
+                        ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
+                        : "bg-yellow-100 border-yellow-200 text-yellow-400 cursor-not-allowed opacity-60"
+                    }`}
+                disabled = {isArrayEmpty()}
+              >
+                <FileText className="w-5 h-5 text-yellow-600" />
+                View Conversion History
+              </button>
+
+                {(selectedModel === MODELS.DFA_MINIMIZATION || selectedModel === MODELS.E_NFA_TO_DFA) && (
                 <button
-                  className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-300 transition-colors w-[200px]"
-                  onClick={conversionHistoryHandler}
+                  onClick={() => setShowComparisonPopup(true)}
+                  disabled={!isConversionValid}
+                  className={`group relative flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border w-[220px] transition-all duration-300 ease-in-out
+                    ${
+                      isConversionValid
+                        ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
+                        : "bg-yellow-100 border-yellow-200 text-yellow-400 cursor-not-allowed opacity-60"
+                    }
+                  `}
                 >
-                  📄 View Conversion History
-                </button>
-                <button
-                  className="flex items-center gap-2 text-sm bg-yellow-200 text-yellow-700 px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-400 transition-colors w-[200px]"
-                  onClick={simulationModelHandler}
-                >
-                  <span className="mr-8">▶️</span> Simulate
-                </button>
+                    <LayoutDashboard
+                      className={`w-5 h-5 ${
+                        isConversionValid
+                          ? "text-yellow-700 group-hover:scale-110 group-hover:text-yellow-900 transition-transform duration-300"
+                          : "text-yellow-400"
+                      }`}
+                    />
+                    Comparison View
+                  </button>
+                )}
+
+              <button
+              onClick={simulationModelHandler}
+              disabled={convertResult === "" ? true : false}
+              className={`group relative flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border w-[220px] transition-all duration-300 ease-in-out
+                    ${
+                      convertResult !== ""
+                        ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
+                        : "bg-yellow-100 border-yellow-200 text-yellow-400 cursor-not-allowed opacity-60"
+                    }
+                  `}
+            >
+              {/* Shimmering light overlay */}
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow/60 to-transparent opacity-0 group-hover:opacity-60 group-hover:animate-shimmer pointer-events-none" />
+
+              {/* Play icon with hover pulse */}
+              <Play className={`${
+                      convertResult !== ""
+                        ? "w-5 h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900"
+                        : "w-5 h-5 text-yellow-700"
+                    }`} />
+
+              Simulate
+
+              {/* Bottom bar shine */}
+              <span className={`${
+                      convertResult !== ""
+                        ? "absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" 
+                        : "absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400"
+                    }`} />
+              {/* <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" /> */}
+            </button>
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900 mb-4 text-center">Quick actions</h4>
                 <Link
                   href="/instructions"
-                  className="flex items-center gap-2 text-sm bg-yellow-400 text-white px-3 py-2 rounded-md border border-yellow-300 hover:bg-yellow-500 transition-colors w-[200px]"
+                  className="flex items-center rounded-full px-3 gap-3 text-sm font-medium bg-yellow-500 text-white px-4 py-2 rounded-xl border border-yellow-400 hover:bg-yellow-600 transition-colors w-[220px] shadow-sm hover:shadow-md"
                 >
-                  <span className="mr-1">📘</span> View Documentation
+                  <BookOpen className="w-5 h-5 text-white" />
+                  View Documentation
                 </Link>
               </div>
+              </div>
             </div>
+
           </div>
         </div>
+        
+        {/* Popup window for Comparison view button */}
+        {showComparisonPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+         <div className="bg-white rounded-xl shadow-lg w-full max-w-5xl h-[90vh] relative flex flex-col border border-yellow-300">
+          {/* Fixed Close Button */}
+          <button
+            className="absolute top-4 right-4 z-10 text-red-600 hover:text-red-800 bg-white rounded-full p-1 shadow-md"
+            onClick={() => setShowComparisonPopup(false)}
+            title="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Scrollable Content */}
+          <div className="p-6 overflow-y-auto flex-grow">
+            <div className="flex justify-between items-center pb-3 border-b border-yellow-200">
+              <h2 className="text-lg font-semibold text-yellow-700">Input vs Output Comparison</h2>
+            </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4  items-stretch">
+        {/* Left Side - Input */}
+        <div className="flex flex-col h-full">
+        <div className="flex flex-col flex-grow bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h4 className="font-medium text-yellow-800 mb-2">User Input</h4>
+          <div className="relative">
+           {selectedModel === MODELS.DFA_MINIMIZATION && (
+          <div className="text-sm text-gray-700 whitespace-pre-wrap bg-white p-2 border border-yellow-100 rounded">
+            {modelInput || "No input provided."}
+          </div>
+           )}
+          {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && parsed && (
+            <div className="text-sm space-y-2 p-3 border border-yellow-400 rounded-lg bg-white shadow-sm">
+              <div className="flex flex-wrap gap-6">
+                <div><strong className="text-yellow-700">Initial:</strong> {parsed.initial}</div>
+                <div><strong className="text-yellow-700">Final:</strong> {parsed.final.join(", ")}</div>
+                <div><strong className="text-yellow-700">Alphabet:</strong> {parsed.alphabet.join(", ")}</div>
+              </div>
+
+              <div>
+                <strong className="text-yellow-700">Transitions:</strong>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {parsed.transitions.map((t, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-300"
+                    >
+                      {t.from} → {t.input} → {t.to}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          </div>
+          
+          {uploadedImage ? (
+          <div className="mt-4">
+            <h5 className="text-sm font-medium text-yellow-700 mb-1">Uploaded Image</h5>
+            <img
+              src={URL.createObjectURL(uploadedImage)}
+              alt="Uploaded"
+              className="w-full rounded border border-yellow-300"
+            />
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-col items-center justify-center gap-2 p-4 border border-yellow-200 bg-yellow-50 rounded-lg text-yellow-700 shadow-sm hover:shadow-md transition-shadow">
+            <ImageOff className="w-6 h-6 text-yellow-500" />
+            <span className="text-sm italic">No uploaded image available</span>
+          </div>
+        )}
+        </div>
+        </div>
+        {/* Right Side - Output */}
+        <div className="flex flex-col h-full">
+        <div className="flex flex-col flex-grow bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h4 className="font-medium text-yellow-800 mb-2">Converted Output</h4>
+          <div className="relative">
+            {selectedModel === MODELS.DFA_MINIMIZATION && (
+            <div className="text-xs font-mono text-green-800 whitespace-pre-wrap bg-white p-2 border border-green-200 rounded max-h-32 overflow-y-auto">
+              {convertResult || "No output generated."}
+            </div>
+            )}
+            
+             {selectedModel === MODELS.E_NFA_TO_DFA && convertedParsed && (
+            <div className="text-sm space-y-2 p-3 bg-green-50 border border-green-400 rounded-lg shadow-sm text-green-800">
+              <div className="flex flex-wrap gap-6">
+                <div><strong className="text-green-700">Initial:</strong> {convertedParsed.initial}</div>
+                <div><strong className="text-green-700">Final:</strong> {convertedParsed.final.join(", ")}</div>
+                <div><strong className="text-green-700">Alphabet:</strong> {convertedParsed.alphabet.join(", ")}</div>
+              </div>
+              <div>
+                <strong className="text-green-700">Transitions:</strong>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {convertedParsed.transitions.map((t, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full border border-green-300"
+                    >
+                      {t.from} → {t.input} → {t.to}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          </div>
+         
+
+          
+          {/* Rendered Image */}
+          <div className="mt-4">
+            <h5 className="text-sm font-medium text-yellow-700 mb-1">Generated Image</h5>
+            {selectedModel === "DFA-Minimization" && (
+              <MinimizedDFAGraphRenderer minimizedDfaString={convertResult} highlightCount={highlightCount} />
+            )}
+            {selectedModel === "e_NFA-to-DFA" && (
+              <DFAGraphRenderer dfaString={convertResult} highlightCount={highlightCount} />
+            )}
+          </div>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>
+      </div>
+      )}
 
         {/* Main Chat Area */}
-        {/* <div className="flex-1 px-4 py-6"> */}
-        <div className="w-4/9 px-4 py-6 overflow-y-auto">
+        {/* <div className="w-4/9 px-4 py-6 overflow-y-auto"> */}
+        <div className="w-4/9 px-4 py-6 overflow-y-auto scroll-hidden max-h-screen">
           <div className="space-y-4 mb-24">
             {(selectedModel === MODELS.DFA_MINIMIZATION ||
               selectedModel === MODELS.E_NFA_TO_DFA) && (
@@ -622,10 +970,15 @@ export default function ChatPage() {
                 <div className="flex flex-col gap-2">
                   <input
                     type="file"
+                    ref={fileInputRef}
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      setUploadedImage(file || null);
+                      // setUploadedImage(file || null);
+                      if (file) {
+                        setUploadedImage(file);
+                        handleExtract(file);
+                      }
                       setShowPreview(false); // Reset preview
                     }}
                     className="block text-sm text-gray-700 
@@ -655,20 +1008,31 @@ export default function ChatPage() {
                 )}
               </div>
             )}
+            {successMessage && (
+              <div className="w-54 text-green-800 bg-green-100 border border-green-500 text-sm mt-1 px-3 py-2 rounded-md">
+                {successMessage}
+              </div>
+            )}
 
             {/* Model Text Input Field */}
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">
-                Input for {selectedModel}
+                {/* Input for {selectedModel} */}
+                Input for {MODEL_DISPLAY_NAMES[selectedModel]}
               </label>
               <div className="space-y-2">
                 <textarea
                   value={modelInput}
-                  onChange={(e) => setModelInput(e.target.value)}
+                  // onChange={(e) => setModelInput(e.target.value)}
+                  onChange={(e) => {
+                    setModelInput(e.target.value);
+                    setIsConversionValid(false); // disables the comparison button until reconversion
+                  }}
                   placeholder={getModelPlaceholder(selectedModel)}
                   rows={2}
                   className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
                 />
+                             
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={handleConvert}
@@ -687,9 +1051,135 @@ export default function ChatPage() {
                       Add Text Input
                     </button>
                   ) : null}
+                  
+                  {/* Show View Parsed Button if modelInput is valid */}
+                  {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && (
+                    <div className="relative group w-fit">
+                      <button
+                        onClick={() => setShowParsedInput((prev) => !prev)}
+                        className="inline-flex items-center gap-1 px-3 py-2 border border-yellow-500 bg-gradient-to-tr from-yellow-400 via-amber-300 to-yellow-200 text-yellow-900 text-sm font-semibold rounded-lg hover:bg-yellow-300 transition-all duration-200 shadow hover:shadow-md"
+                      >
+                        {showParsedInput ? (
+                          <Eye className="w-4 h-4 text-yellow-800" />
+                        ) : (
+                          <EyeOff className="w-4 h-4 text-yellow-800" />
+                        )}
+                      </button>
+
+                      {/* Tooltip */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-black bg-white rounded shadow opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        Simplified version
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               </div>
             </div>
+            {/* Display input in simple format */}
+              {selectedModel === MODELS.E_NFA_TO_DFA && modelInput.trim() && parsed && showParsedInput && (
+                <div className="mt-6 text-sm space-y-2 p-3 border border-yellow-400 rounded-lg bg-white shadow-sm relative">
+
+                {/* Embedded title badge */}
+                <div className="absolute -top-3 left-4 bg-yellow-50 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm border border-yellow-500">
+                  Simplified View
+                </div>
+
+                {/* Parsed Content */}
+                <div className="flex flex-wrap gap-6 pt-2">
+                  <div><strong className="text-yellow-700">Initial:</strong> {parsed.initial}</div>
+                  <div><strong className="text-yellow-700">Final:</strong> {parsed.final.join(", ")}</div>
+                  <div><strong className="text-yellow-700">Alphabet:</strong> {parsed.alphabet.join(", ")}</div>
+                </div>
+
+                <div>
+                  <strong className="text-yellow-700">Transitions:</strong>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {parsed.transitions.map((t, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-300"
+                      >
+                        {t.from} → {t.input} → {t.to}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+              )}
+
+              {/* line between input and result */}
+              <div className="flex justify-center my-4">
+              <div className="w-[110%] left-10 mx-10 mt-8 my-4 border-t border-yellow-400 rounded-full" />
+              </div>
+
+            {/* Conversion Result */}
+            {convertResult && (
+              <div className="mt-4 space-y-2">
+                <h4 className="text-md font-medium text-gray-900">Conversion Result</h4>
+                <div className="relative">
+                  <button
+                    onClick={() => navigator.clipboard.writeText(convertResult)}
+                    className="absolute top-2 right-2 text-green-700 bg-green-100 border border-green-300 rounded p-1 hover:bg-green-200"
+                    title="Copy to clipboard"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg max-h-64 overflow-y-auto">
+                    <pre className="text-xs text-green-800 whitespace-pre-wrap font-mono">
+                      {selectedModel == "PDA" ? dulplicateTransitionRemoverForPDA() : convertResult}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {convertResult && (
+              <div className="mt-8 space-y-2">
+                <h4 className="text-md font-medium text-gray-900">Generated Graph</h4>
+                <div>
+                  {selectedModel === "PDA" && (
+                    <PDAGraphRenderer
+                      transitionString={convertResult}
+                      highlightCount={highlightCount}
+                    />
+                  )}
+
+                  {selectedModel === "DFA-Minimization" && (
+                    <MinimizedDFAGraphRenderer
+                      minimizedDfaString={convertResult}
+                      highlightCount={highlightCount}
+                    />
+                  )}
+                  {selectedModel === "Regex-to-ε-NFA" && (
+                    <ENFAGraphRenderer
+                      enfaString={convertResult}
+                      highlightCount={highlightCount}
+                    />
+                  )}
+                  {selectedModel === "e_NFA-to-DFA" && (
+                    <DFAGraphRenderer
+                      dfaString={convertResult}
+                      highlightCount={highlightCount}
+                    />
+                  )}
+                </div>
+                <br />
+                {selectedModel == "PDA" ? isAccepting ? <div className="w-54 text-green-800 bg-green-100 border border-green-500 text-sm mt-1 px-3 py-2 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <span>Input string is accepted!</span>
+                  </div>
+                </div> : <div className="w-100 text-red-800 bg-red-100 border border-red-500 text-sm mt-1 px-3 py-2 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <CircleX className="w-4 h-4 text-red-600" />
+                    <span>Input rejected: Not in final state or stack not empty!</span>
+                  </div>
+                </div> : <></>}
+              </div>
+            )}
             {/* Add text input popup window */}
             {showModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -891,210 +1381,314 @@ export default function ChatPage() {
         </div>
         {/* Messaging interface */}
         <div className="w-3/9 border-l border-yellow-400 px-2 py-4 overflow-y-auto">
-          <div className="h-full flex flex-col gap-3">
-            <div className="font-semibold text-yellow-600 border-b border-yellow-200 pb-0">
-              Messaging
+          <div className=" flex flex-col gap-3">
+            <div className="flex justify-between items-center pb-0">
+              <div className="font-semibold text-yellow-600">Messaging</div>
+              <button
+              onClick={clearChatHistoryHandler}
+              className="flex items-center gap-2 text-sm text-yellow-800 bg-white border border-yellow-400 rounded-md px-2 py-1 hover:bg-gray-200 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear
+            </button>
             </div>
-            <div className="h-[520px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth">
+            <div className="h-[480px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth scroll-hidden">
               <div className="flex flex-col gap-y-2">
                 {messages.map((message) => (
+                  // <div
+                  //   key={message.id}
+                  //   className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                  //     }`}
+                  // >
+                  //   <div
+                  //     className={`flex ${  // ← UPDATE THIS LINE
+                  //       message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  //       } items-start space-x-2`}
+                  //   >
+                  //     {/* Avatar section stays the same */}
+                  //     <div
+                  //       className={`flex-shrink-0 ${message.role === "user" ? "ml-3" : "mr-3"
+                  //         }`}
+                  //     >
+                  //       {message.role === "assistant" ? (
+                  //         <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                  //           <span className="text-white font-bold text-xs">SF</span>
+                  //         </div>
+                  //       ) : (
+                  //         <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                  //           <span className="text-white font-bold text-xs">U</span>
+                  //         </div>
+                  //       )}
+                  //     </div>
+
+                  //     {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
+                  //     {/* <div
+                  //       className={`rounded-2xl px-4 py-1 ${  // ← REMOVE max-w-xs lg:max-w-md from here
+                  //         message.role === "user"
+                  //           ? "chat-bubble-user"
+                  //           : "chat-bubble-ai"
+                  //         }`}
+                  //     > */}
+                  //     <div
+                  //       className={`rounded-2xl px-4 py-1 ${
+                  //         message.role === "user"
+                  //           ? "chat-bubble-user max-w-[90%]"
+                  //           : "chat-bubble-ai w-[480px] max-w-full"
+                  //       }`}
+                  //     >
+
+                  //       {/* REPLACE the existing content section with: */}
+                  //       <div className="overflow-hidden">
+                  //         <div
+                  //           className={`prose prose-sm max-w-none break-words leading-relaxed ${message.role === "user"
+                  //             ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                  //             : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                  //             } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
+                  //         >
+                  //           {/* <ReactMarkdown
+                  //       remarkPlugins={[remarkGfm]}
+                  //       rehypePlugins={[rehypeHighlight]}
+                  //       components={{
+                  //         pre: ({ children, ...props }) => (
+                  //           <pre 
+                  //             {...props} 
+                  //             className="overflow-x-auto max-w-full whitespace-pre-wrap break-words text-xs leading-relaxed bg-gray-100 p-3 rounded-md"
+                  //           >
+                  //             {children}
+                  //           </pre>
+                  //         ),
+                  //         code: ({ children, className, ...props }) => {
+                  //           // Check if it's inline code by looking at className
+                  //           const isInline = !className || !className.includes('language-');
+                            
+                  //           if (isInline) {
+                  //             return (
+                  //               <code 
+                  //                 {...props} 
+                  //                 className="break-words bg-gray-200 px-1 py-0.5 rounded text-xs"
+                  //               >
+                  //                 {children}
+                  //               </code>
+                  //             );
+                  //           } else {
+                  //             return (
+                  //               <code 
+                  //                 {...props} 
+                  //                 className="block whitespace-pre-wrap break-words text-xs"
+                  //               >
+                  //                 {children}
+                  //               </code>
+                  //             );
+                  //           }
+                  //         }
+                  //       }}
+                  //     >
+                  //       {message.content ?? ""}
+                  //     </ReactMarkdown> */}
+                  //           <ReactMarkdown
+                  //             remarkPlugins={[remarkGfm]}
+                  //             rehypePlugins={[rehypeHighlight]}
+                  //             components={{
+                  //               pre: (props: any) => (
+                  //                 <div className="relative my-4">
+                  //                   <pre
+                  //                     className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${message.role === "user"
+                  //                       ? "bg-yellow-800 text-yellow-100 border-yellow-600"
+                  //                       : "bg-yellow-100 text-yellow-100 border-yellow-100"
+                  //                       }`}
+                  //                     style={{
+                  //                       fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                  //                     }}
+                  //                   >
+                  //                     {props.children}
+                  //                   </pre>
+                  //                   <button
+                  //                     className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                  //                     onClick={() => {
+                  //                       // Extract text content for copying
+                  //                       const extractText = (element: any): string => {
+                  //                         if (typeof element === 'string') return element;
+                  //                         if (Array.isArray(element)) return element.map(extractText).join('');
+                  //                         if (element?.props?.children) return extractText(element.props.children);
+                  //                         return '';
+                  //                       };
+                  //                       const codeText = extractText(props.children);
+                  //                       navigator.clipboard.writeText(codeText);
+                  //                     }}
+                  //                   >
+                  //                     Copy
+                  //                   </button>
+                  //                 </div>
+                  //               ),
+                  //               code: (props: any) => {
+                  //                 const isInline = !props.className || !props.className.includes('language-');
+
+                  //                 if (isInline) {
+                  //                   return (
+                  //                     <code
+                  //                       className={`px-1.5 py-0.5 rounded text-xs font-mono ${message.role === "user"
+                  //                         ? "bg-yellow-200 text-yellow-900"
+                  //                         : "bg-gray-200 text-gray-800"
+                  //                         }`}
+                  //                     >
+                  //                       {props.children}
+                  //                     </code>
+                  //                   );
+                  //                 } else {
+                  //                   return (
+                  //                     <code
+                  //                       className={`block whitespace-pre-wrap ${props.className || ''}`}
+                  //                       style={{
+                  //                         fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                  //                       }}
+                  //                     >
+                  //                       {props.children}
+                  //                     </code>
+                  //                   );
+                  //                 }
+                  //               }
+                  //             }}
+                  //           >
+                  //             {message.content ?? ""}
+                  //           </ReactMarkdown>
+                  //         </div>
+                  //       </div>
+
+                  //       {/* Timestamp stays the same */}
+                  //       <p
+                  //         className={`text-xs mt-1 ${message.role === "user"
+                  //           ? "text-yellow-100"
+                  //           : "text-gray-500"
+                  //           }`}
+                  //       >
+                  //         {message.timestamp.toLocaleTimeString([], {
+                  //           hour: "2-digit",
+                  //           minute: "2-digit",
+                  //         })}
+                  //       </p>
+                  //     </div>
+                  //   </div>
+                  // </div>
                   <div
-                    key={message.id}
-                    className={`flex ${
-                      message.role === "user" ? "justify-end" : "justify-start"
+                  key={message.id}
+                  className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"}`}
+                >
+                  {/* SF or U avatar on top */}
+                  <div className="mb-1">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        message.role === "assistant"
+                          ? "bg-gradient-to-br from-orange-400 to-orange-500"
+                          : "bg-gray-400"
+                      }`}
+                    >
+                      <span className="text-white font-bold text-xs">
+                        {/* {message.role === "assistant" ? "SF" : "U"} */}
+                        {message.role === "assistant" ? (
+                            <Bot className="w-4 h-4 text-white" />
+                          ) : (
+                            <User className="w-4 h-4 text-white" />
+                          )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Message bubble below */}
+                  <div
+                    className={`rounded-2xl px-4 py-1 ${
+                      message.role === "user"
+                        ? "chat-bubble-user max-w-[90%]"
+                        : "chat-bubble-ai w-[480px] max-w-full"
                     }`}
                   >
-                    <div
-                      className={`flex max-w-sm sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl ${
-                        // ← UPDATE THIS LINE
-                        message.role === "user"
-                          ? "flex-row-reverse"
-                          : "flex-row"
-                      } items-start space-x-2`}
-                    >
-                      {/* Avatar section stays the same */}
+                    {/* MARKDOWN MESSAGE RENDERING - UNCHANGED */}
+                    <div className="overflow-hidden">
                       <div
-                        className={`flex-shrink-0 ${
-                          message.role === "user" ? "ml-3" : "mr-3"
-                        }`}
-                      >
-                        {message.role === "assistant" ? (
-                          <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">
-                              SF
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-xs">
-                              U
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* REPLACE THIS ENTIRE MESSAGE BUBBLE SECTION: */}
-                      <div
-                        className={`rounded-2xl px-4 py-1 ${
-                          // ← REMOVE max-w-xs lg:max-w-md from here
+                        className={`prose prose-sm max-w-none break-words leading-relaxed ${
                           message.role === "user"
-                            ? "chat-bubble-user"
-                            : "chat-bubble-ai"
-                        }`}
+                            ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
+                            : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
+                        } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
                       >
-                        {/* REPLACE the existing content section with: */}
-                        <div className="overflow-hidden">
-                          <div
-                            className={`prose prose-sm max-w-none break-words leading-relaxed ${
-                              message.role === "user"
-                                ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
-                                : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
-                            } prose-pre:rounded-md prose-pre:p-3 prose-code:text-xs prose-code:bg-opacity-20 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:overflow-x-auto prose-pre:max-w-full prose-pre:whitespace-pre-wrap`}
-                          >
-                            {/* <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeHighlight]}
-                        components={{
-                          pre: ({ children, ...props }) => (
-                            <pre 
-                              {...props} 
-                              className="overflow-x-auto max-w-full whitespace-pre-wrap break-words text-xs leading-relaxed bg-gray-100 p-3 rounded-md"
-                            >
-                              {children}
-                            </pre>
-                          ),
-                          code: ({ children, className, ...props }) => {
-                            // Check if it's inline code by looking at className
-                            const isInline = !className || !className.includes('language-');
-                            
-                            if (isInline) {
-                              return (
-                                <code 
-                                  {...props} 
-                                  className="break-words bg-gray-200 px-1 py-0.5 rounded text-xs"
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                          components={{
+                            pre: (props: any) => (
+                              <div className="relative my-4">
+                                <pre
+                                  className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${
+                                    message.role === "user"
+                                      ? "bg-yellow-800 text-yellow-100 border-yellow-600"
+                                      : "bg-yellow-100 text-yellow-100 border-yellow-100"
+                                  }`}
+                                  style={{
+                                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                  }}
                                 >
-                                  {children}
+                                  {props.children}
+                                </pre>
+                                <button
+                                  className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
+                                  onClick={() => {
+                                    const extractText = (element: any): string => {
+                                      if (typeof element === 'string') return element;
+                                      if (Array.isArray(element)) return element.map(extractText).join('');
+                                      if (element?.props?.children) return extractText(element.props.children);
+                                      return '';
+                                    };
+                                    const codeText = extractText(props.children);
+                                    navigator.clipboard.writeText(codeText);
+                                  }}
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                            ),
+                            code: (props: any) => {
+                              const isInline = !props.className || !props.className.includes('language-');
+                              return isInline ? (
+                                <code
+                                  className={`px-1.5 py-0.5 rounded text-xs font-mono ${
+                                    message.role === "user"
+                                      ? "bg-yellow-200 text-yellow-900"
+                                      : "bg-gray-200 text-gray-800"
+                                  }`}
+                                >
+                                  {props.children}
                                 </code>
-                              );
-                            } else {
-                              return (
-                                <code 
-                                  {...props} 
-                                  className="block whitespace-pre-wrap break-words text-xs"
+                              ) : (
+                                <code
+                                  className={`block whitespace-pre-wrap ${props.className || ''}`}
+                                  style={{
+                                    fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                                  }}
                                 >
-                                  {children}
+                                  {props.children}
                                 </code>
                               );
                             }
-                          }
-                        }}
-                      >
-                        {message.content ?? ""}
-                      </ReactMarkdown> */}
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                              rehypePlugins={[rehypeHighlight]}
-                              components={{
-                                pre: (props: any) => (
-                                  <div className="relative my-4">
-                                    <pre
-                                      className={`overflow-x-auto max-w-full rounded-lg p-4 text-sm leading-relaxed border ${
-                                        message.role === "user"
-                                          ? "bg-yellow-800 text-yellow-100 border-yellow-600"
-                                          : "bg-yellow-100 text-yellow-100 border-yellow-100"
-                                      }`}
-                                      style={{
-                                        fontFamily:
-                                          'Consolas, Monaco, "Courier New", monospace',
-                                      }}
-                                    >
-                                      {props.children}
-                                    </pre>
-                                    <button
-                                      className="absolute top-2 right-2 px-2 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-500 transition-colors"
-                                      onClick={() => {
-                                        // Extract text content for copying
-                                        const extractText = (
-                                          element: any
-                                        ): string => {
-                                          if (typeof element === "string")
-                                            return element;
-                                          if (Array.isArray(element))
-                                            return element
-                                              .map(extractText)
-                                              .join("");
-                                          if (element?.props?.children)
-                                            return extractText(
-                                              element.props.children
-                                            );
-                                          return "";
-                                        };
-                                        const codeText = extractText(
-                                          props.children
-                                        );
-                                        navigator.clipboard.writeText(codeText);
-                                      }}
-                                    >
-                                      Copy
-                                    </button>
-                                  </div>
-                                ),
-                                code: (props: any) => {
-                                  const isInline =
-                                    !props.className ||
-                                    !props.className.includes("language-");
-
-                                  if (isInline) {
-                                    return (
-                                      <code
-                                        className={`px-1.5 py-0.5 rounded text-xs font-mono ${
-                                          message.role === "user"
-                                            ? "bg-yellow-200 text-yellow-900"
-                                            : "bg-gray-200 text-gray-800"
-                                        }`}
-                                      >
-                                        {props.children}
-                                      </code>
-                                    );
-                                  } else {
-                                    return (
-                                      <code
-                                        className={`block whitespace-pre-wrap ${
-                                          props.className || ""
-                                        }`}
-                                        style={{
-                                          fontFamily:
-                                            'Consolas, Monaco, "Courier New", monospace',
-                                        }}
-                                      >
-                                        {props.children}
-                                      </code>
-                                    );
-                                  }
-                                },
-                              }}
-                            >
-                              {message.content ?? ""}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-
-                        {/* Timestamp stays the same */}
-                        <p
-                          className={`text-xs mt-1 ${
-                            message.role === "user"
-                              ? "text-yellow-100"
-                              : "text-gray-500"
-                          }`}
+                          }}
                         >
-                          {message.timestamp.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
+                          {message.content ?? ""}
+                        </ReactMarkdown>
                       </div>
                     </div>
+
+                    {/* Timestamp below bubble */}
+                    <p
+                      className={`text-xs mt-1 ${
+                        message.role === "user" ? "text-yellow-100" : "text-gray-500"
+                      }`}
+                    >
+                      {message.timestamp.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
                   </div>
+                </div>
+
                 ))}
               </div>
               {/* Loading Message */}
@@ -1102,7 +1696,7 @@ export default function ChatPage() {
                 <div className="flex justify-start">
                   <div className="flex items-start space-x-3">
                     <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">SF</span>
+                      <span className="text-white font-bold text-xs"><Bot className="w-4 h-4 text-white" /></span>
                     </div>
                     <div className="chat-bubble-ai rounded-2xl px-4 py-3">
                       <div className="flex space-x-1">
@@ -1126,13 +1720,20 @@ export default function ChatPage() {
           </div>
 
           {/* Chat Input */}
-          <div className="fixed bottom-0 right-0 w-[506px] bg-white border-t border-yellow-200">
+          {/* <div className="fixed bottom-0 right-0 w-[506px] bg-white border-t border-yellow-200"> */}
+          <div className="fixed bottom-1 w-[32.3%] bg-white">
             <div className="w-full px-4 py-4">
               <form onSubmit={handleSubmit} className="flex space-x-4">
                 <div className="flex-1 relative">
                   <textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                      }
+                    }}
                     placeholder="Ask about automata theory, conversions, or get help with your results..."
                     rows={2}
                     className="w-full px-4 py-3 pr-12 border border-yellow-200 rounded-xl resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent light-yellow-bg"
@@ -1159,6 +1760,7 @@ export default function ChatPage() {
                   </button>
                 </div>
               </form>
+
 
               {/* Input Suggestions */}
               {/* <div className="mt-3 flex flex-wrap gap-2">
@@ -1205,47 +1807,49 @@ export default function ChatPage() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: "rgba(0, 0, 0, 0.7)", // 50% black opacity
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
           }}
         >
-          <div className="bg-[#FFFFFF] w-full max-w-2xl rounded-lg p-6 shadow-xl relative">
-            <button
-              onClick={() => setIsConversionHistoryOpen(false)}
-              className="absolute top-3 right-4 text-xl font-bold text-gray-600 hover:text-black"
-            >
-              &times;
-            </button>
-            <h1 className="text-2xl font-semibold mb-4">Conversion History</h1>
-            {conversionHistoryExtractor()?.map((conversion, key) => (
-              <div
-                key={key + 1}
-                className="mb-6 border border-gray-300 rounded-lg bg-[#FFF8DE] p-4 shadow"
+          <div
+            className="bg-[#FFFFFF] w-full max-w-2xl rounded-lg shadow-xl relative overflow-y-auto"
+            style={{ maxHeight: "80vh" }}
+          >
+            {/* Sticky header */}
+            <div className="sticky top-0 z-10 bg-white px-6 pt-6 pb-2 rounded-t-lg">
+              <button
+                onClick={() => setIsConversionHistoryOpen(false)}
+                className="absolute top-3 right-4 text-xl font-bold text-gray-600 hover:text-black"
               >
-                <h2 className="text-lg font-medium mb-2">
-                  🔢 Conversion {key + 1}
-                </h2>
-                <p className="mb-2">
-                  <span className="font-semibold">
-                    Context-Free Input String:{" "}
-                  </span>
-                  <span className="bg-green-100 px-2 py-1 rounded text-sm font-mono">
-                    {conversion.string}
-                  </span>
-                </p>
-                <p className="font-semibold mb-1">Conversion Result:</p>
-                <div className="bg-white p-3 rounded-md text-sm font-mono whitespace-pre-wrap">
-                  {/* {conversion.conversion?.map((line, idx) => (
-                    <div key={idx} className="mb-1">
-                      {line}
-                    </div>
-                  ))} */}
-                  {conversion?.conversion}
+                &times;
+              </button>
+              <h1 className="text-2xl font-semibold mb-4">Conversion History</h1>
+            </div>
+
+            {/* Scrollable content with padding */}
+            <div className="px-6 pb-6">
+              {conversionHistoryExtractor()?.map((conversion, key) => (
+                <div
+                  key={key + 1}
+                  className="mb-6 border border-gray-300 rounded-lg bg-[#FFF8DE] p-4 shadow"
+                >
+                  <h2 className="text-lg font-medium mb-2">🔢 Conversion {key + 1}</h2>
+                  <p className="mb-2">
+                    <span className="font-semibold">Context-Free Input String: </span>
+                    <span className="bg-green-100 px-2 py-1 rounded text-sm font-mono">
+                      {conversion.string}
+                    </span>
+                  </p>
+                  <p className="font-semibold mb-1">Conversion Result:</p>
+                  <div className="bg-white p-3 rounded-md text-sm font-mono whitespace-pre-wrap">
+                    {conversion?.conversion}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      )}
+
+      }
 
       {isSimulatingModelOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1273,22 +1877,23 @@ export default function ChatPage() {
                 )}
               </div>
               <div>
-                <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">
-                  Input Value:{" "}
-                </p>
-                {selectedModel == "PDA" ? (
-                  <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
-                    {modelInput}
-                    {/* {modelInput.split('').map((char, index) => (
+                <p className="font-mono text-lg tracking-wide bg-white px-4 py-2 rounded border border-[#FFD700] inline-block">Input Value: </p>
+                {selectedModel == "PDA" || selectedModel == "DFA-Minimization" || selectedModel == "Regex-to-ε-NFA" || selectedModel == "e_NFA-to-DFA" ? <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                  {/* {modelInput} */}
+                  {(modelInput + 'ε').split('').map((char, index) => (
                     <span
                       key={index}
                       style={{ color: index < highlightCount ? '#FFD700' : '#000' }}
                     >
                       {char}
                     </span>
-                  ))} */}
+                  ))}
+                </p> : null}
+                {/* {selectedModel === "PDA" || selectedModel === "DFA-Minimization" ? (
+                  <p className="inline-block rounded-md border border-[#FFD700] bg-[#FFF8DE] px-4 py-2 text-lg font-mono tracking-wide shadow-sm">
+                    {modelInput}
                   </p>
-                ) : null}
+                ) : null} */}
               </div>
               <br />
               {/* Action Buttons */}
@@ -1309,6 +1914,16 @@ export default function ChatPage() {
             </div>
           </div>
         </div>
+      }
+
+      {isSimulatingModelOpen && selectedModel === "DFA-Minimization" && (
+        <DFASimulator
+          minimizedDfaString={convertResult}
+          isOpen={isSimulatingModelOpen}
+          onClose={() => {
+            setIsSimulatingModelOpen(false);
+          }}
+      />
       )}
     </div>
   );
