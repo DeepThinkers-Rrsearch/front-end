@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, JSX } from "react";
 import Link from "next/link";
-import { PDAStack, DFA_MINI_Stack, E_NFA_Stack, REGEX_Stack } from "../../utils/stacks/index"
 import { DFAGraphRenderer, ENFAGraphRenderer, MinimizedDFAGraphRenderer, PDAGraphRenderer } from "../../utils/graph_renderer/index"
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -76,13 +75,6 @@ export default function ChatPage() {
   const [isSimulatingModelOpen, setIsSimulatingModelOpen] = useState<boolean>(false);
   const [highlightCount, setHighlightCount] = useState<number>(0);
   const [stackObject, setStackObject] = useState<stackObjectTypes>(initStackObject);
-
-  // creating stack instances
-
-  const PDA_Stack_Instance = new PDAStack();
-  const DFA_MINI_Stack_Instance = new DFA_MINI_Stack();
-  const E_NFA_Stack_Instance = new E_NFA_Stack();
-  const REGEX_Stack_Instance = new REGEX_Stack();
 
   const [showModal, setShowModal] = useState(false);
   const [initialState, setInitialState] = useState("");
@@ -204,7 +196,7 @@ export default function ChatPage() {
     try {
       // Demo API call - replace with actual API endpoint
       // http://127.0.0.1:8000/api/v1/convert
-      process.env.NEXT_PUBLIC_BACKEND_URL
+      // process.env.NEXT_PUBLIC_BACKEND_URL
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`, {
         method: "POST",
@@ -241,7 +233,7 @@ export default function ChatPage() {
             string: modelInput,
             conversion: data.result
           });
-          setStackObject({ ...stackObject, DFA_MINIMIZATION: RegexArray })
+          setStackObject({ ...stackObject, REGEX_TO_E_NFA: RegexArray })
           //REGEX_Stack_Instance.push(inputValue, data.result)
           break;
         case "e_NFA-to-DFA":
@@ -250,7 +242,7 @@ export default function ChatPage() {
             string: modelInput,
             conversion: data.result
           });
-          setStackObject({ ...stackObject, DFA_MINIMIZATION: E_NFAArray })
+          setStackObject({ ...stackObject, E_NFA_TO_DFA: E_NFAArray })
           //E_NFA_Stack_Instance.push(inputValue, data.result)
           break;
         case "PDA":
@@ -260,7 +252,7 @@ export default function ChatPage() {
             string: modelInput,
             conversion: data.result
           });
-          setStackObject({ ...stackObject, DFA_MINIMIZATION: PDAArray })
+          setStackObject({ ...stackObject, PDA: PDAArray })
           //PDA_Stack_Instance.push(inputValue, data.result)
           break;
         default:
@@ -465,6 +457,7 @@ export default function ChatPage() {
   }
 
   const conversionHistoryExtractor = (): Array<StackItem> => {
+    console.log("John",selectedModel);
     switch (selectedModel) {
       case "DFA-Minimization":
         return stackObject.DFA_MINIMIZATION
@@ -656,6 +649,10 @@ const parseModelInput = (input: string) => {
   [MODELS.PDA]: "PDA",
 };
 
+const isArrayEmpty = (array = conversionHistoryExtractor()) : boolean => {
+  return Array.isArray(array) && array.length === 0;
+}
+
 
   return (
     <div className="flex min-h-screen light-yellow-bg">
@@ -730,7 +727,13 @@ const parseModelInput = (input: string) => {
               
               <button
                 onClick={conversionHistoryHandler}
-                className="flex items-center rounded-full px-3 gap-1 text-sm font-medium bg-yellow-50 text-yellow-800 px-4 py-2 rounded-xl border border-yellow-300 hover:bg-yellow-200 transition-colors w-[220px] shadow-sm hover:shadow-md"
+                className={`flex items-center rounded-full px-3 gap-1 text-sm font-medium bg-yellow-50 text-yellow-800 px-4 py-2 rounded-xl border border-yellow-300 
+                  ${
+                      !isArrayEmpty()
+                        ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
+                        : "bg-yellow-100 border-yellow-200 text-yellow-400 cursor-not-allowed opacity-60"
+                    }`}
+                disabled = {isArrayEmpty()}
               >
                 <FileText className="w-5 h-5 text-yellow-600" />
                 View Conversion History
@@ -761,18 +764,34 @@ const parseModelInput = (input: string) => {
 
               <button
               onClick={simulationModelHandler}
-              className="group relative overflow-hidden flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border border-yellow-400 bg-gradient-to-tr from-yellow-200 via-yellow-100 to-amber-100 text-yellow-800 shadow-sm w-[220px] transition-all duration-300 ease-in-out hover:scale-[1.04] hover:shadow-yellow-400/40 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              disabled={convertResult === "" ? true : false}
+              className={`group relative flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border w-[220px] transition-all duration-300 ease-in-out
+                    ${
+                      convertResult !== ""
+                        ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
+                        : "bg-yellow-100 border-yellow-200 text-yellow-400 cursor-not-allowed opacity-60"
+                    }
+                  `}
             >
               {/* Shimmering light overlay */}
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow/60 to-transparent opacity-0 group-hover:opacity-60 group-hover:animate-shimmer pointer-events-none" />
 
               {/* Play icon with hover pulse */}
-              <Play className="w-5 h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900" />
+              <Play className={`${
+                      convertResult !== ""
+                        ? "w-5 h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900"
+                        : "w-5 h-5 text-yellow-700"
+                    }`} />
 
               Simulate
 
               {/* Bottom bar shine */}
-              <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" />
+              <span className={`${
+                      convertResult !== ""
+                        ? "absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" 
+                        : "absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400"
+                    }`} />
+              {/* <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" /> */}
             </button>
             <div className="mt-6 pt-4 border-t border-gray-200">
               <h4 className="font-medium text-gray-900 mb-4 text-center">Quick actions</h4>
