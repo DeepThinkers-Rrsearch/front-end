@@ -25,7 +25,10 @@ const message = new HumanMessage({
 
 
   const result = await llm.invoke([message]);
-  return result.content as string;
+  // return result.content as string;
+  const rawContent = result.content as string;
+  const cleanedContent = rawContent.replace(/^"(.*)"$/, "$1");
+  return cleanedContent;
 }
 // Utility: Convert File to base64
 async function fileToBase64(file: File): Promise<string> {

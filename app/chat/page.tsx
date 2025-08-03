@@ -12,6 +12,7 @@ import { Copy, Eye, Plus, CheckCircle, CircleX } from "lucide-react";
 import { useAppStore } from '../../utils/store';
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
+import { DFASimulator } from "@/utils/graph_renderer/DFASimulator";
 
 interface Message {
   id: string;
@@ -93,6 +94,9 @@ export default function ChatPage() {
 
   const [successMessage, setSuccessMessage] = useState<React.ReactNode>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [simulationInputString, setSimulationInputString] = useState("");
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -459,10 +463,25 @@ export default function ChatPage() {
     }
   }
 
-  const simulationModelHandler = () => {
+  // const simulationModelHandler = () => {
 
-    setIsSimulatingModelOpen(true)
-  }
+  //   setIsSimulatingModelOpen(true)
+  // }
+
+  const simulationModelHandler = () => {
+    if (selectedModel === "DFA-Minimization") {
+      // For DFA Minimization, we need an input string to simulate
+      // const inputString = prompt("Enter a string to simulate on the DFA:");
+      // if (inputString !== null) {
+      //   setSimulationInputString(inputString);
+      //   setIsSimulatingModelOpen(true);
+      // }
+          setIsSimulatingModelOpen(true);
+    } else {
+      // For other models, keep existing behavior
+      setIsSimulatingModelOpen(true);
+    }
+  };
 
   const graphRenderHandler = (): JSX.Element => {
     switch (selectedModel) {
@@ -1409,6 +1428,16 @@ export default function ChatPage() {
           </div>
         </div>
       }
+
+      {isSimulatingModelOpen && selectedModel === "DFA-Minimization" && (
+        <DFASimulator
+          minimizedDfaString={convertResult}
+          isOpen={isSimulatingModelOpen}
+          onClose={() => {
+            setIsSimulatingModelOpen(false);
+          }}
+      />
+      )}
     </div>
   );
 }
