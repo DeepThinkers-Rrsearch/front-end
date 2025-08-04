@@ -13,6 +13,7 @@ import { useAppStore } from '../../utils/store';
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
 import { DFASimulator } from "@/utils/graph_renderer/DFASimulator";
+import { ENFASimulator } from "@/utils/graph_renderer/NFASimulator";
 
 interface Message {
   id: string;
@@ -484,7 +485,7 @@ export default function ChatPage() {
   // }
 
   const simulationModelHandler = () => {
-    if (selectedModel === "DFA-Minimization") {
+    if (selectedModel === "DFA-Minimization" || selectedModel === "e_NFA-to-DFA") {
       // For DFA Minimization, we need an input string to simulate
       // const inputString = prompt("Enter a string to simulate on the DFA:");
       // if (inputString !== null) {
@@ -1876,6 +1877,15 @@ const parseModelInput = (input: string) => {
       {isSimulatingModelOpen && selectedModel === "DFA-Minimization" && (
         <DFASimulator
           minimizedDfaString={convertResult}
+          isOpen={isSimulatingModelOpen}
+          onClose={() => {
+            setIsSimulatingModelOpen(false);
+          }}
+      />
+      )}
+      {isSimulatingModelOpen && selectedModel === "e_NFA-to-DFA" && (
+        <ENFASimulator
+          dfaString={convertResult}
           isOpen={isSimulatingModelOpen}
           onClose={() => {
             setIsSimulatingModelOpen(false);
