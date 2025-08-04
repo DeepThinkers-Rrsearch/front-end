@@ -173,6 +173,7 @@ export default function ChatPage() {
 
     setIsConverting(true);
     setConvertResult("");
+    const result = modelInput.includes(" ");
 
     // Update the latest value
     switch (selectedModel) {
@@ -197,8 +198,9 @@ export default function ChatPage() {
       // Demo API call - replace with actual API endpoint
       // http://127.0.0.1:8000/api/v1/convert
       // process.env.NEXT_PUBLIC_BACKEND_URL
+      // ${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/convert`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -284,6 +286,13 @@ export default function ChatPage() {
     }
     setIsConversionValid(true);
   };
+
+  const handleConvertByEnter = (e:any) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); 
+      handleConvert();
+    }
+  }
 
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -457,7 +466,7 @@ export default function ChatPage() {
   }
 
   const conversionHistoryExtractor = (): Array<StackItem> => {
-    console.log("John",selectedModel);
+    
     switch (selectedModel) {
       case "DFA-Minimization":
         return stackObject.DFA_MINIMIZATION
@@ -1027,6 +1036,7 @@ const isArrayEmpty = (array = conversionHistoryExtractor()) : boolean => {
                   placeholder={getModelPlaceholder(selectedModel)}
                   rows={2}
                   className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
+                  onKeyDown={handleConvertByEnter}
                 />
                              
                 <div className="flex flex-wrap gap-3">

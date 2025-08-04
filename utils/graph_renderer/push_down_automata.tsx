@@ -74,15 +74,15 @@ function generateDot(transitions: string[], highlightCount = 0): string {
     if (!initialState) initialState = from; // first seen state as initial
 
     const isHighlighted = idx < highlightCount;
-    const color = isHighlighted ? 'yellow' : 'black';
-    const fill = isHighlighted ? 'yellow' : 'white';
+    const color = isHighlighted ? 'orange' : 'black';
+    const fill = isHighlighted ? 'orange' : 'white';
 
     states.add(from);
     states.add(to);
 
     if (!(from in nodeStyles)) nodeStyles[from] = fill;
     if (!(to in nodeStyles)) nodeStyles[to] = fill;
-    if (isHighlighted) nodeStyles[to] = 'yellow';
+    if (isHighlighted) nodeStyles[to] = 'orange';
 
     const edgeLabel = `${input}, ${stack} / ${action}`;
     edgeDefs.push(`  "${from}" -> "${to}" [label="${edgeLabel}", color=${color}];`);
