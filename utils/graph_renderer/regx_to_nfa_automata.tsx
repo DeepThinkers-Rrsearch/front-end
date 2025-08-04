@@ -48,7 +48,7 @@ function parseENFAToDot(raw: string, highlightCount = 0): { dot: string } {
     const hasStart = seg.includes('[start]');
     const hasEnd = seg.includes('[end]');
     const cleaned = seg.replace('[start]', '').replace('[end]', '').trim();
-    const parts = cleaned.split('--').map(p => p.trim()).filter(Boolean);
+    const parts = cleaned.split('-').map(p => p.trim()).filter(Boolean);
 
     for (let i = 0; i < parts.length - 2; i += 2) {
       transitions.push({ from: parts[i], to: parts[i + 2], label: parts[i + 1] });
