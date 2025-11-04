@@ -33,7 +33,7 @@ import { useAppStore } from "../../utils/store";
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
 import { extract_dfa_text_from_image } from "../../utils/text_extraction/dfa_minimization_image_to_text";
 import { DFASimulator } from "@/utils/graph_renderer/DFASimulator";
-import { ENFASimulator } from "@/utils/graph_renderer/ENFASimulator";
+import { ENFASimulator } from "@/utils/graph_renderer/NFASimulator";
 
 interface Message {
   id: string;
@@ -199,6 +199,7 @@ export default function ChatPage() {
 
     setIsConverting(true);
     setConvertResult("");
+    const result = modelInput.includes(" ");
 
     // Update the latest value
     switch (selectedModel) {
@@ -222,6 +223,7 @@ export default function ChatPage() {
       // Demo API call - replace with actual API endpoint
       // http://127.0.0.1:8000/api/v1/convert
       // process.env.NEXT_PUBLIC_BACKEND_URL
+      // ${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/convert`,
@@ -310,6 +312,13 @@ export default function ChatPage() {
       setIsConverting(false);
     }
     setIsConversionValid(true);
+  };
+
+  const handleConvertByEnter = (e: any) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleConvert();
+    }
   };
 
   // const handleSubmit = async (e: React.FormEvent) => {
@@ -506,7 +515,10 @@ export default function ChatPage() {
   // }
 
   const simulationModelHandler = () => {
-    if (selectedModel === "DFA-Minimization") {
+    if (
+      selectedModel === "DFA-Minimization" ||
+      selectedModel === "e_NFA-to-DFA"
+    ) {
       // For DFA Minimization, we need an input string to simulate
       // const inputString = prompt("Enter a string to simulate on the DFA:");
       // if (inputString !== null) {
@@ -1114,6 +1126,7 @@ export default function ChatPage() {
                   placeholder={getModelPlaceholder(selectedModel)}
                   rows={2}
                   className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
+                  onKeyDown={handleConvertByEnter}
                 />
 
                 <div className="flex flex-wrap gap-3">
@@ -2073,6 +2086,15 @@ export default function ChatPage() {
       {isSimulatingModelOpen && selectedModel === "Regex-to-ε-NFA" && (
         <ENFASimulator
           enfaString={convertResult}
+          isOpen={isSimulatingModelOpen}
+          onClose={() => {
+            setIsSimulatingModelOpen(false);
+          }}
+        />
+      )}
+      {isSimulatingModelOpen && selectedModel === "e_NFA-to-DFA" && (
+        <ENFASimulator
+          dfaString={convertResult}
           isOpen={isSimulatingModelOpen}
           onClose={() => {
             setIsSimulatingModelOpen(false);
