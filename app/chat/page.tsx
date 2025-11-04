@@ -28,6 +28,7 @@ import {
   LayoutDashboard,
   X,
   ImageOff,
+  Home,
 } from "lucide-react";
 import { useAppStore } from "../../utils/store";
 import { extractEpsilonNfaTextFromImage } from "../../utils/text_extraction/e_nfa_image_to_text";
@@ -87,7 +88,7 @@ export default function ChatPage() {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<ModelType>(
-    MODELS.DFA_MINIMIZATION
+    MODELS.REGEX_TO_E_NFA
   );
   const [modelInput, setModelInput] = useState("");
   const [isConverting, setIsConverting] = useState(false);
@@ -694,13 +695,78 @@ export default function ChatPage() {
     return Array.isArray(array) && array.length === 0;
   };
 
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+
   return (
     <div className="flex min-h-screen light-yellow-bg">
-      {/* <div className="flex max-w-7xl mx-auto"> */}
-      <div className="flex w-full">
+      <div className="flex w-full relative">
+        {/* Mobile navigation buttons - Top Right Corner */}
+        <div className="lg:hidden fixed top-4 right-4 z-50 flex gap-2">
+          {/* Home Button */}
+          <Link
+            href="/"
+            className="p-2 bg-yellow-400 text-white rounded-lg shadow-lg hover:bg-yellow-500 transition-colors"
+            aria-label="Go to home"
+          >
+            <Home className="w-6 h-6" />
+          </Link>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            className="p-2 bg-yellow-400 text-white rounded-lg shadow-lg hover:bg-yellow-500 transition-colors"
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {isMobileSidebarOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
+        </div>
+
+        {/* Overlay for mobile */}
+        {isMobileSidebarOpen && (
+          <div
+            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+        )}
+
         {/* Left Sidebar - Model Selection */}
-        {/* <div className="hidden lg:block w-80 bg-white border-r border-yellow-200 min-h-screen"> */}
-        <div className="w-2/9 bg-white border-r border-yellow-400 min-h-screen">
+        <div
+          className={`
+          fixed lg:relative
+          w-64 sm:w-72 lg:w-2/9
+          bg-white border-r border-yellow-400 
+          min-h-screen
+          transition-transform duration-300 ease-in-out
+          z-40
+          ${
+            isMobileSidebarOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
+          }
+        `}
+        >
           <div className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Conversion Models
@@ -716,6 +782,7 @@ export default function ChatPage() {
                       ? "border-yellow-400 bg-yellow-50 text-yellow-700"
                       : "border-gray-200 hover:border-yellow-300 hover:bg-yellow-25"
                   }`}
+                  onClick={() => setIsMobileSidebarOpen(false)}
                 >
                   <input
                     type="radio"
@@ -769,7 +836,7 @@ export default function ChatPage() {
               <div className="flex flex-col items-center gap-2">
                 <button
                   onClick={conversionHistoryHandler}
-                  className={`flex items-center rounded-full px-3 gap-1 text-sm font-medium bg-yellow-50 text-yellow-800 px-4 py-2 rounded-xl border border-yellow-300 
+                  className={`flex items-center justify-center gap-2 text-xs sm:text-sm font-medium px-3 py-2 rounded-xl border border-yellow-300 w-full
                   ${
                     !isArrayEmpty()
                       ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
@@ -777,8 +844,11 @@ export default function ChatPage() {
                   }`}
                   disabled={isArrayEmpty()}
                 >
-                  <FileText className="w-5 h-5 text-yellow-600" />
-                  View Conversion History
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
+                  <span className="hidden sm:inline">
+                    View Conversion History
+                  </span>
+                  <span className="sm:hidden">History</span>
                 </button>
 
                 {(selectedModel === MODELS.DFA_MINIMIZATION ||
@@ -786,7 +856,7 @@ export default function ChatPage() {
                   <button
                     onClick={() => setShowComparisonPopup(true)}
                     disabled={!isConversionValid}
-                    className={`group relative flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border w-[220px] transition-all duration-300 ease-in-out
+                    className={`group relative flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 sm:px-5 py-2 rounded-xl border w-full transition-all duration-300 ease-in-out
                     ${
                       isConversionValid
                         ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
@@ -795,20 +865,21 @@ export default function ChatPage() {
                   `}
                   >
                     <LayoutDashboard
-                      className={`w-5 h-5 ${
+                      className={`w-4 h-4 sm:w-5 sm:h-5 ${
                         isConversionValid
                           ? "text-yellow-700 group-hover:scale-110 group-hover:text-yellow-900 transition-transform duration-300"
                           : "text-yellow-400"
                       }`}
                     />
-                    Comparison View
+                    <span className="hidden sm:inline">Comparison View</span>
+                    <span className="sm:hidden">Compare</span>
                   </button>
                 )}
 
                 <button
                   onClick={simulationModelHandler}
                   disabled={convertResult === "" ? true : false}
-                  className={`group relative flex items-center justify-center gap-3 text-sm font-semibold px-5 py-2 rounded-xl border w-[220px] transition-all duration-300 ease-in-out
+                  className={`group relative flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold px-3 sm:px-5 py-2 rounded-xl border w-full transition-all duration-300 ease-in-out
                     ${
                       convertResult !== ""
                         ? "border-yellow-400 bg-gradient-to-tr from-yellow-300 via-yellow-100 to-amber-100 text-yellow-800 hover:scale-[1.03] hover:shadow-yellow-400/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 animate-pulse hover:animate-none"
@@ -816,18 +887,15 @@ export default function ChatPage() {
                     }
                   `}
                 >
-                  {/* Shimmering light overlay */}
                   <span className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow/60 to-transparent opacity-0 group-hover:opacity-60 group-hover:animate-shimmer pointer-events-none" />
-                  {/* Play icon with hover pulse */}
                   <Play
                     className={`${
                       convertResult !== ""
-                        ? "w-5 h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900"
-                        : "w-5 h-5 text-yellow-700"
+                        ? "w-4 h-4 sm:w-5 sm:h-5 text-yellow-700 transition-transform duration-300 group-hover:scale-125 group-hover:text-yellow-900"
+                        : "w-4 h-4 sm:w-5 sm:h-5 text-yellow-700"
                     }`}
                   />
                   Simulate
-                  {/* Bottom bar shine */}
                   <span
                     className={`${
                       convertResult !== ""
@@ -835,7 +903,6 @@ export default function ChatPage() {
                         : "absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400"
                     }`}
                   />
-                  {/* <span className="absolute bottom-0 left-1/2 w-0 h-[2px] bg-orange-400 group-hover:w-full group-hover:left-0 transition-all duration-300" /> */}
                 </button>
                 <div className="mt-6 pt-4 border-t border-gray-200">
                   <h4 className="font-medium text-gray-900 mb-4 text-center">
@@ -843,10 +910,11 @@ export default function ChatPage() {
                   </h4>
                   <Link
                     href="/instructions"
-                    className="flex items-center rounded-full px-3 gap-3 text-sm font-medium bg-yellow-500 text-white px-4 py-2 rounded-xl border border-yellow-400 hover:bg-yellow-600 transition-colors w-[220px] shadow-sm hover:shadow-md"
+                    className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium bg-yellow-500 text-white px-3 sm:px-4 py-2 rounded-xl border border-yellow-400 hover:bg-yellow-600 transition-colors w-full shadow-sm hover:shadow-md"
                   >
-                    <BookOpen className="w-5 h-5 text-white" />
-                    View Documentation
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    <span className="hidden sm:inline">View Documentation</span>
+                    <span className="sm:hidden">Docs</span>
                   </Link>
                 </div>
               </div>
@@ -856,19 +924,19 @@ export default function ChatPage() {
 
         {/* Popup window for Comparison view button */}
         {showComparisonPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
             <div className="bg-white rounded-xl shadow-lg w-full max-w-5xl h-[90vh] relative flex flex-col border border-yellow-300">
               {/* Fixed Close Button */}
               <button
-                className="absolute top-4 right-4 z-10 text-red-600 hover:text-red-800 bg-white rounded-full p-1 shadow-md"
+                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 text-red-600 hover:text-red-800 bg-white rounded-full p-1 shadow-md"
                 onClick={() => setShowComparisonPopup(false)}
                 title="Close"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
               {/* Scrollable Content */}
-              <div className="p-6 overflow-y-auto flex-grow">
+              <div className="p-3 sm:p-6 overflow-y-auto flex-grow">
                 <div className="flex justify-between items-center pb-3 border-b border-yellow-200">
                   <h2 className="text-lg font-semibold text-yellow-700">
                     Input vs Output Comparison
@@ -1035,8 +1103,7 @@ export default function ChatPage() {
         )}
 
         {/* Main Chat Area */}
-        {/* <div className="w-4/9 px-4 py-6 overflow-y-auto"> */}
-        <div className="w-4/9 px-4 py-6 overflow-y-auto scroll-hidden max-h-screen">
+        <div className="flex-1 lg:w-4/9 px-2 sm:px-4 py-4 sm:py-6 overflow-y-auto scroll-hidden max-h-screen pt-20 md:pt-16 lg:pt-6">
           <div className="space-y-4 mb-24">
             {(selectedModel === MODELS.DFA_MINIMIZATION ||
               selectedModel === MODELS.E_NFA_TO_DFA) && (
@@ -1124,16 +1191,16 @@ export default function ChatPage() {
                     setIsConversionValid(false); // disables the comparison button until reconversion
                   }}
                   placeholder={getModelPlaceholder(selectedModel)}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-yellow-300 bg-white rounded-lg text-sm resize-y min-h-[80px] focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-colors"
                   onKeyDown={handleConvertByEnter}
                 />
 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   <button
                     onClick={handleConvert}
                     disabled={!modelInput.trim() || isConverting}
-                    className="w-35 mt-0 px-4 py-1 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 sm:flex-none sm:w-35 mt-0 px-3 sm:px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isConverting ? "Converting..." : "Convert"}
                   </button>
@@ -1141,9 +1208,8 @@ export default function ChatPage() {
                   selectedModel === MODELS.E_NFA_TO_DFA ? (
                     <button
                       onClick={() => setShowModal(true)}
-                      className="w-38 px-4 py-1 border border-yellow-400 text-yellow-700 font-medium rounded-lg hover:bg-yellow-200 transition-colors"
+                      className="flex-1 sm:flex-none sm:w-38 px-3 sm:px-4 py-2 border border-yellow-400 text-yellow-700 text-sm font-medium rounded-lg hover:bg-yellow-200 transition-colors"
                     >
-                      {" "}
                       Add Text Input
                     </button>
                   ) : null}
@@ -1304,8 +1370,8 @@ export default function ChatPage() {
             )}
             {/* Add text input popup window */}
             {showModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md h-[80vh] overflow-hidden flex flex-col">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4">
+                <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 w-full max-w-md h-[80vh] overflow-hidden flex flex-col">
                   {/* Title */}
                   <h2 className="text-lg font-semibold text-yellow-600 mb-4">
                     Create Automata Input
@@ -1502,8 +1568,8 @@ export default function ChatPage() {
           </div>
         </div>
         {/* Messaging interface */}
-        <div className="w-3/9 border-l border-yellow-400 px-2 py-4 overflow-y-auto">
-          <div className=" flex flex-col gap-3">
+        <div className="hidden xl:block xl:w-3/9 border-l border-yellow-400 px-2 py-4 overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center pb-0">
               <div className="font-semibold text-yellow-600">Messaging</div>
               <button
@@ -1514,7 +1580,7 @@ export default function ChatPage() {
                 Clear
               </button>
             </div>
-            <div className="h-[480px] overflow-y-auto border-t border-yellow-300 px-1 py-2 scroll-smooth scroll-hidden">
+            <div className="h-[480px] overflow-y-auto overflow-x-hidden border-t border-yellow-300 px-1 py-2 scroll-smooth scroll-hidden">
               <div className="flex flex-col gap-y-2">
                 {messages.map((message) => (
                   // <div
@@ -1719,16 +1785,16 @@ export default function ChatPage() {
 
                     {/* Message bubble below */}
                     <div
-                      className={`rounded-2xl px-4 py-1 ${
+                      className={`rounded-2xl px-4 py-1 overflow-hidden ${
                         message.role === "user"
                           ? "chat-bubble-user max-w-[90%]"
-                          : "chat-bubble-ai w-[480px] max-w-full"
+                          : "chat-bubble-ai w-full max-w-[480px]"
                       }`}
                     >
                       {/* MARKDOWN MESSAGE RENDERING - UNCHANGED */}
                       <div className="overflow-hidden">
                         <div
-                          className={`prose prose-sm max-w-none break-words leading-relaxed ${
+                          className={`prose prose-sm max-w-none break-words overflow-wrap-anywhere leading-relaxed ${
                             message.role === "user"
                               ? "text-white prose-headings:text-white prose-strong:text-white prose-code:text-yellow-100 prose-pre:bg-yellow-600 prose-pre:text-white"
                               : "text-gray-800 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-code:text-gray-700 prose-pre:bg-gray-100 prose-pre:text-gray-800"
@@ -1864,8 +1930,7 @@ export default function ChatPage() {
           </div>
 
           {/* Chat Input */}
-          {/* <div className="fixed bottom-0 right-0 w-[506px] bg-white border-t border-yellow-200"> */}
-          <div className="fixed bottom-1 w-[32.3%] bg-white">
+          <div className="fixed bottom-1 w-[32.3%] bg-white hidden xl:block">
             <div className="w-full px-4 py-4">
               <form onSubmit={handleSubmit} className="flex space-x-4">
                 <div className="flex-1 relative">
@@ -1939,6 +2004,182 @@ export default function ChatPage() {
             </div>
           </div>
         </div>
+
+        {/* Mobile Chat Button - Fixed at bottom right */}
+        <button
+          onClick={() => setIsMobileChatOpen(true)}
+          className="xl:hidden fixed bottom-4 right-4 z-30 p-4 bg-yellow-400 text-white rounded-full shadow-lg hover:bg-yellow-500 transition-colors"
+        >
+          <Bot className="w-6 h-6" />
+        </button>
+
+        {/* Mobile Chat Modal */}
+        {isMobileChatOpen && (
+          <div className="xl:hidden fixed inset-0 z-50 flex flex-col bg-white">
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-4 bg-yellow-400 text-white">
+              <h3 className="font-semibold text-lg">AI Assistant</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={clearChatHistoryHandler}
+                  className="flex items-center gap-1 text-sm bg-white text-yellow-800 border border-yellow-500 rounded-md px-2 py-1 hover:bg-yellow-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Clear</span>
+                </button>
+                <button
+                  onClick={() => setIsMobileChatOpen(false)}
+                  className="p-1 hover:bg-yellow-500 rounded"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`flex ${
+                      message.role === "user" ? "flex-row-reverse" : "flex-row"
+                    } items-start space-x-2 max-w-full`}
+                  >
+                    <div
+                      className={`flex-shrink-0 ${
+                        message.role === "user" ? "ml-3" : "mr-3"
+                      }`}
+                    >
+                      {message.role === "assistant" ? (
+                        <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">
+                            SF
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">
+                            U
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div
+                      className={`rounded-2xl px-4 py-2 max-w-[80%] overflow-hidden ${
+                        message.role === "user"
+                          ? "chat-bubble-user"
+                          : "chat-bubble-ai"
+                      }`}
+                    >
+                      <div className="text-sm break-words overflow-wrap-anywhere">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                          components={{
+                            pre: ({ children, ...props }) => (
+                              <pre
+                                {...props}
+                                className="overflow-x-auto max-w-full whitespace-pre-wrap break-words text-xs leading-relaxed bg-gray-100 p-2 rounded-md my-2"
+                              >
+                                {children}
+                              </pre>
+                            ),
+                            code: ({ children, className, ...props }) => {
+                              const isInline =
+                                !className || !className.includes("language-");
+                              if (isInline) {
+                                return (
+                                  <code
+                                    {...props}
+                                    className="break-words bg-gray-200 px-1 py-0.5 rounded text-xs"
+                                  >
+                                    {children}
+                                  </code>
+                                );
+                              }
+                              return (
+                                <code
+                                  {...props}
+                                  className="block whitespace-pre-wrap break-words text-xs"
+                                >
+                                  {children}
+                                </code>
+                              );
+                            },
+                          }}
+                        >
+                          {message.content ?? ""}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="chat-bubble-ai rounded-2xl px-4 py-2">
+                    <div className="flex space-x-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Chat Input */}
+            <div className="p-4 bg-white border-t border-yellow-200">
+              <form onSubmit={handleSubmit} className="flex space-x-2">
+                <textarea
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                  placeholder="Ask about automata theory..."
+                  rows={2}
+                  className="flex-1 px-3 py-2 border border-yellow-200 rounded-lg resize-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-sm"
+                  disabled={isLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={!inputValue.trim() || isLoading}
+                  className="px-4 bg-yellow-400 rounded-lg hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-900"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
       {/* Conversion History Model */}
       {isConversionHistoryOpen && (
@@ -2085,7 +2326,7 @@ export default function ChatPage() {
 
       {isSimulatingModelOpen && selectedModel === "Regex-to-ε-NFA" && (
         <ENFASimulator
-          enfaString={convertResult}
+          dfaString={convertResult}
           isOpen={isSimulatingModelOpen}
           onClose={() => {
             setIsSimulatingModelOpen(false);

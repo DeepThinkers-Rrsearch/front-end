@@ -6,25 +6,27 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="hero-gradient min-h-screen flex items-center relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Text Content */}
-            <div className="text-left">
-              <div className="mb-8">
-                <span className="text-6xl font-bold text-yellow-800 opacity-70 absolute top-17 z-0">
+            <div className="text-left relative">
+              <div className="mb-6 md:mb-8">
+                <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-yellow-800 opacity-70 block md:absolute md:top-0 z-0">
                   STATE FORGE
                 </span>
               </div>
 
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 relative z-10">
-                Transform
-                <br />
-                <span className="text-gray-800">Automata Theory with</span>
-                <br />
-                <span className="text-gray-800">AI-Powered Intelligence!</span>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 relative z-10 mt-4 md:mt-12">
+                <span className="block">Transform</span>
+                <span className="block text-gray-800">
+                  Automata Theory with
+                </span>
+                <span className="block text-gray-800">
+                  AI-Powered Intelligence!
+                </span>
               </h1>
 
-              <p className="text-lg text-gray-600 mb-8 max-w-md">
+              <p className="text-base sm:text-lg text-gray-600 mb-8 max-w-md">
                 Comprehensive Streamlit-based web application for automata
                 theory and formal language conversions powered by advanced
                 transformer networks.
@@ -49,7 +51,9 @@ export default function HomePage() {
 
                   {/* State Transitions */}
                   <div className="absolute top-32 left-1/2 transform -translate-x-1/2 w-24 h-32 bg-white rounded-lg flex flex-col items-center justify-center">
-                    <div className="text-sm font-bold text-gray-700">Automata</div>
+                    <div className="text-sm font-bold text-gray-700">
+                      Automata
+                    </div>
                     <div className="text-xs text-gray-500">Conversions</div>
                   </div>
 
@@ -319,102 +323,127 @@ export default function HomePage() {
       </section>
 
       {/* Team Section */}
-      <section className="py-20 bg-white">
+      <section className="py-16 sm:py-20 lg:py-24 light-yellow-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Our Research Team
+          {/* Section Header */}
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
+              Research Team
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Meet the dedicated professionals behind State Forge's innovative
               automata theory solutions.
             </p>
           </div>
 
-          {/* Developers Section */}
-          <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
-              Research Team
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-lg font-bold text-gray-900">D1</span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Galappaththi S.S
-                </h4>
-                <p className="text-gray-600">University of Moratuwa</p>
-                <p className="text-sm text-gray-500 mt-2">DFA → Min DFA</p>
+          {/* All Team Members in One Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+            {/* Team Member 1 */}
+            <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  D1
+                </span>
               </div>
-
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-lg font-bold text-gray-900">D2</span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Madushan A.K.I
-                </h4>
-                <p className="text-gray-600">University of Moratuwa</p>
-                <p className="text-sm text-gray-500 mt-2">PDA Processing</p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-lg font-bold text-gray-900">D3</span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Jayasinghe P.S
-                </h4>
-                <p className="text-gray-600">University of Moratuwa</p>
-                <p className="text-sm text-gray-500 mt-2">ε-NFA → DFA</p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-lg font-bold text-gray-900">D4</span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Dissanayaka D.M.C.P
-                </h4>
-                <p className="text-gray-600">University of Moratuwa</p>
-                <p className="text-sm text-gray-500 mt-2">Regex → ε-NFA</p>
-              </div>
+              <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                Galappaththi S.S
+              </h4>
+              <p className="text-sm sm:text-base text-gray-600 mb-2">
+                Faculty of Information Technology
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                University of Moratuwa
+              </p>
             </div>
-          </div>
 
-          {/* Supervisors Section */}
-          <div className="mb-12">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-900">PS</span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Dr. I.T.S. Piyatilake
-                </h4>
-                <p className="text-gray-600">Senior Lecturer</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Department of Computational Mathematics,
-                  University of Moratuwa
-                </p>
+            {/* Team Member 2 */}
+            <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  D2
+                </span>
               </div>
+              <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                Madushan A.K.I
+              </h4>
+              <p className="text-sm sm:text-base text-gray-600 mb-2">
+                Faculty of Information Technology
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                University of Moratuwa
+              </p>
+            </div>
 
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <div className="w-20 h-20 bg-yellow-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-gray-900">CS</span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  Dr. C.P. Wijesiriwardena
-                </h4>
-                <p className="text-gray-600">Senior Lecturer</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Department of Information Technology,
-                  University of Moratuwa
-                </p>
+            {/* Team Member 3 */}
+            <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  D3
+                </span>
               </div>
+              <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                Jayasinghe P.S
+              </h4>
+              <p className="text-sm sm:text-base text-gray-600 mb-2">
+                Faculty of Information Technology
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                University of Moratuwa
+              </p>
+            </div>
+
+            {/* Team Member 4 */}
+            <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  D4
+                </span>
+              </div>
+              <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                Dissanayaka D.M.C.P
+              </h4>
+              <p className="text-sm sm:text-base text-gray-600 mb-2">
+                Faculty of Information Technology
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                University of Moratuwa
+              </p>
+            </div>
+
+            {/* Supervisor 1 */}
+            <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  PS
+                </span>
+              </div>
+              <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                Dr. I.T.S. Piyatilake
+              </h4>
+              <p className="text-sm sm:text-base text-gray-600 mb-2">
+                Senior Lecturer
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                University of Moratuwa
+              </p>
+            </div>
+
+            {/* Supervisor 2 */}
+            <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  CS
+                </span>
+              </div>
+              <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
+                Dr. C.P. Wijesiriwardena
+              </h4>
+              <p className="text-sm sm:text-base text-gray-600 mb-2">
+                Senior Lecturer
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500">
+                University of Moratuwa
+              </p>
             </div>
           </div>
         </div>
@@ -558,7 +587,7 @@ export default function HomePage() {
                 href="/chat"
                 className="text-gray-400 hover:text-yellow-400 transition-colors"
               >
-                Conversions
+                Convert
               </Link>
               <Link
                 href="/instructions"
