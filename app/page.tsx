@@ -342,7 +342,10 @@ export default function HomePage() {
             {/* Team Member 1 */}
             <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
               <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
-                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={1.5} />
+                <User
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-white"
+                  strokeWidth={1.5}
+                />
               </div>
               <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                 Galappaththi S.S
@@ -358,7 +361,10 @@ export default function HomePage() {
             {/* Team Member 2 */}
             <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
               <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
-                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={1.5} />
+                <User
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-white"
+                  strokeWidth={1.5}
+                />
               </div>
               <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                 Madushan A.K.I
@@ -374,7 +380,10 @@ export default function HomePage() {
             {/* Team Member 3 */}
             <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
               <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
-                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={1.5} />
+                <User
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-white"
+                  strokeWidth={1.5}
+                />
               </div>
               <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                 Jayasinghe P.S
@@ -390,7 +399,10 @@ export default function HomePage() {
             {/* Team Member 4 */}
             <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
               <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
-                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={1.5} />
+                <User
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-white"
+                  strokeWidth={1.5}
+                />
               </div>
               <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                 Dissanayaka D.M.C.P
@@ -406,7 +418,10 @@ export default function HomePage() {
             {/* Supervisor 1 */}
             <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
               <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
-                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={1.5} />
+                <User
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-white"
+                  strokeWidth={1.5}
+                />
               </div>
               <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                 Dr. I.T.S. Piyatilake
@@ -422,7 +437,10 @@ export default function HomePage() {
             {/* Supervisor 2 */}
             <div className="bg-white rounded-xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 zayd-shadow">
               <div className="w-20 h-20 sm:w-24 sm:h-24 yellow-gradient rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center shadow-md">
-                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" strokeWidth={1.5} />
+                <User
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-white"
+                  strokeWidth={1.5}
+                />
               </div>
               <h4 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                 Dr. C.P. Wijesiriwardena
