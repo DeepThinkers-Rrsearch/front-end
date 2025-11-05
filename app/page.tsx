@@ -47,8 +47,7 @@ export default function HomePage() {
       if (response.ok) {
         setSubmitStatus({
           type: "success",
-          message:
-            "Thank you for your message! We'll get back to you soon.",
+          message: "Thank you for your message! We'll get back to you soon.",
         });
         // Reset form
         setFormData({

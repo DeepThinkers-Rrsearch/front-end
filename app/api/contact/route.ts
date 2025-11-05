@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
           <div style="margin: 20px 0;">
             <h3 style="color: #374151; margin-bottom: 10px;">Message:</h3>
             <div style="background-color: #f9fafb; padding: 15px; border-left: 4px solid #f59e0b; border-radius: 4px;">
-              ${message.replace(/\n/g, '<br>')}
+              ${message.replace(/\n/g, "<br>")}
             </div>
           </div>
 
@@ -103,7 +103,7 @@ Sent from State Forge contact form at ${new Date().toLocaleString()}
           <div style="background-color: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; border-radius: 4px; margin: 20px 0;">
             <p style="margin: 0; color: #92400e;">
               <strong>Your message:</strong><br>
-              ${message.replace(/\n/g, '<br>')}
+              ${message.replace(/\n/g, "<br>")}
             </p>
           </div>
 
@@ -112,7 +112,9 @@ Sent from State Forge contact form at ${new Date().toLocaleString()}
           </p>
 
           <div style="margin: 30px 0;">
-            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/chat" 
+            <a href="${
+              process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+            }/chat" 
                style="background-color: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
               Start Converting
             </a>
